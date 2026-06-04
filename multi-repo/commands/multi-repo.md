@@ -13,7 +13,7 @@ Manages a set of repositories as a virtual monorepo. The registry lives in
 | Task | Section |
 |---|---|
 | Show status of all repos | [→ status](#status) |
-| Fetch, pull, update submodules in all repos | [→ sync](#sync) |
+| Fetch, pull, update pinned submodules in all repos | [→ sync](#sync) |
 | Clone missing repos from registry | [→ clone](#clone) |
 | Run a shell command in every repo | [→ foreach-cmd](#foreach-cmd) |
 | Register a new repo | [→ add-alias-url-path](#add-alias-url-path) |
@@ -31,7 +31,7 @@ Manages a set of repositories as a virtual monorepo. The registry lives in
 url: <git-url>
 path: <local-path>     # relative to the directory containing REPOS.md
 branch: main           # optional, default: main
-submodules: true       # optional: run submodule update after pull
+submodules: true       # optional: initialize/update pinned submodules after pull
 ```
 
 **`repos/<alias>.md`** — optional per-repo detail file. Free-form markdown:
@@ -104,7 +104,9 @@ Print format:
 
 ### sync
 
-Fetch + fast-forward pull + submodule update in every registered repo.
+Fetch + fast-forward pull + pinned submodule update in every registered repo.
+This keeps the working tree at the commits recorded by the superproject. It
+does not advance submodules to their remote heads.
 
 ```bash
 ROOT="$(dirname "$REGISTRY")"
@@ -127,7 +129,7 @@ parse_repos "$REGISTRY" | while IFS='|' read -r alias url path branch submodules
   fi
   if [ "$submodules" = "true" ]; then
     echo "    updating submodules..."
-    git submodule update --init --remote --recursive
+    git submodule update --init --recursive
     echo "    ✓ submodules updated"
   fi
 done
@@ -252,15 +254,20 @@ workspace/
 ## Submodule management
 
 When `submodules: true` is set for a repo, the skill runs
-`git submodule update --init --remote --recursive` after every pull (sync) and
-after cloning. This keeps the repo's own `.gitmodules` submodules in sync
-automatically.
+`git submodule update --init --recursive` after every pull (sync) and after
+cloning. This initializes submodules and checks out the commits pinned by the
+superproject.
+
+Do not use `/multi-repo sync` to intentionally advance a submodule pointer. For
+that, update the submodule in a feature branch/worktree, test it, commit inside
+the submodule, then commit the superproject pointer bump as a normal project
+change.
 
 To update only one repo's submodules manually:
 
 ```bash
 cd "$ROOT/$path"
-git submodule update --init --remote --recursive
+git submodule update --init --recursive
 ```
 
 ---

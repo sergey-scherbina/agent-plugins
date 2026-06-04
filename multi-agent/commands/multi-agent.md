@@ -72,14 +72,16 @@ test -d .git                                          # must be main checkout
 test "$(git symbolic-ref --short HEAD)" = "main"
 git fetch origin
 git merge --ff-only origin/main
+git diff --quiet
 git diff --cached --quiet
-git ls-tree origin/main .work/active/ | grep "<slug>" && echo "ALREADY CLAIMED — stop"
+git ls-tree -r --name-only origin/main .work/active/ 2>/dev/null | grep -Fx ".work/active/<slug>.claim" && echo "ALREADY CLAIMED — stop"
 ```
 
 2. Write the claim file:
 ```bash
 AGENT_ID="claude-code"   # adjust if running as a different tool
 TS=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+mkdir -p .work/active
 printf '%s\nagent: %s\nheartbeat: %s\nstatus: not-started\ndone-so-far:\nnext: (plan first step)\n' \
   "feature/<slug> $TS" "$AGENT_ID" "$TS" \
   > ".work/active/<slug>.claim"
@@ -379,6 +381,7 @@ LOOP:
   1.  # ── Main checkout ──
       test -d .git && test "$(git symbolic-ref --short HEAD)" = "main"
       git fetch origin && git merge --ff-only origin/main
+      git diff --quiet
       git diff --cached --quiet
       Re-read AGENTS.md from origin/main — apply any updated rules
       git ls-tree origin/main .work/ | grep -q paused → STOP
@@ -394,6 +397,7 @@ LOOP:
       if genuinely ambiguous → ask ONE clear question, wait, then proceed.
 
   4.  # ── Claim — main checkout only ──
+      mkdir -p .work/active
       printf '%s\nagent: %s\nheartbeat: %s\nstatus: not-started\ndone-so-far:\nnext: %s\n' \
         "<worktree-name> <timestamp>" "<agent-id>" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "<first step>" \
         > .work/active/<slug>.claim
@@ -418,8 +422,8 @@ LOOP:
   8.  Bookkeeping commit (own commit, never bundled with feature code):
         git rm .work/active/<slug>.claim
         update "$QUEUE_FILE" according to the project AGENTS.md lifecycle
-          (for example: delete from SPRINT.md, or mark [x] in WORK_QUEUE.md)
-        prepend entry to CHANGELOG.md
+          (for example: delete from SPRINT.md, or move/update an entry in WORK_QUEUE.md)
+        record done state according to project AGENTS.md
 
   9.  Rebase worktree on origin/main if it moved → push → sync local main:
         git branch -f main origin/main
@@ -441,9 +445,10 @@ LOOP:
 
 When there are no unclaimed pending tasks — do not stop silently:
 
-1. Read `BACKLOG.md` — find top 3 most actionable items not yet in the queue.
-2. Present each with a one-line rationale and rough effort.
-3. Wait for the user's decision. **Do not add anything without explicit instruction** — priorities are the user's call.
+1. If project AGENTS.md gives an empty-queue example, follow it.
+2. If the project has `BACKLOG.md`, find top 3 most actionable items not yet in the queue.
+3. Present each with a one-line rationale and rough effort.
+4. Wait for the user's decision. **Do not add anything without explicit instruction** — priorities are the user's call.
 
 ### Recording tech debt
 
