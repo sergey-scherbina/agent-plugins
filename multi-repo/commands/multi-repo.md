@@ -1,6 +1,6 @@
 ---
-description: "Multi-repo workspace management. Treats a set of repositories as a virtual monorepo. Use when checking status across repos, syncing all repos, cloning a workspace from scratch, running a command in every repo, or registering a new repo."
-argument-hint: "status | sync | clone | foreach <cmd> | add <alias> <url> [path]"
+description: "Multi-repo workspace management. Treats a set of repositories as a virtual monorepo. Use when checking status across repos, syncing all repos, updating submodules to remote heads, cloning a workspace from scratch, running a command in every repo, or registering a new repo."
+argument-hint: "status | sync | update | clone | foreach <cmd> | add <alias> <url> [path]"
 ---
 
 # Multi-repo workspace
@@ -14,6 +14,7 @@ Manages a set of repositories as a virtual monorepo. The registry lives in
 |---|---|
 | Show status of all repos | [→ status](#status) |
 | Fetch, pull, update pinned submodules in all repos | [→ sync](#sync) |
+| Fetch, pull, advance submodules to remote heads | [→ update](#update) |
 | Clone missing repos from registry | [→ clone](#clone) |
 | Run a shell command in every repo | [→ foreach-cmd](#foreach-cmd) |
 | Register a new repo | [→ add-alias-url-path](#add-alias-url-path) |
@@ -31,7 +32,7 @@ Manages a set of repositories as a virtual monorepo. The registry lives in
 url: <git-url>
 path: <local-path>     # relative to the directory containing REPOS.md
 branch: main           # optional, default: main
-submodules: true       # optional: initialize/update pinned submodules after pull
+submodules: true       # optional: sync pinned submodules; update advances to remote heads
 ```
 
 **`repos/<alias>.md`** — optional per-repo detail file. Free-form markdown:
@@ -131,6 +132,45 @@ parse_repos "$REGISTRY" | while IFS='|' read -r alias url path branch submodules
     echo "    updating submodules..."
     git submodule update --init --recursive
     echo "    ✓ submodules updated"
+  fi
+done
+```
+
+---
+
+### update
+
+Fetch + fast-forward pull + remote submodule update in every registered repo.
+This intentionally advances submodules to the branch heads configured in
+`.gitmodules` by running `git submodule update --init --remote --recursive`.
+
+Use this when you want the workspace to consume the latest submodule commits.
+If a superproject records submodule pointers, this may leave that superproject
+dirty; commit the pointer bump from a normal feature worktree after testing.
+
+```bash
+ROOT="$(dirname "$REGISTRY")"
+parse_repos "$REGISTRY" | while IFS='|' read -r alias url path branch submodules; do
+  REPO="$ROOT/$path"
+  if [ ! -d "$REPO/.git" ] && [ ! -f "$REPO/.git" ]; then
+    echo "  $alias: NOT CLONED — run /multi-repo clone first"
+    continue
+  fi
+  echo "  updating $alias..."
+  cd "$REPO"
+  git fetch origin
+  # Fast-forward only — never merge/rebase dirty working trees
+  if git diff --quiet && git diff --cached --quiet; then
+    git merge --ff-only "origin/$branch" 2>/dev/null \
+      && echo "    ✓ up to date" \
+      || echo "    ⚠ cannot fast-forward (dirty or diverged) — skipped"
+  else
+    echo "    ⚠ dirty working tree — fetch only, skipped pull"
+  fi
+  if [ "$submodules" = "true" ]; then
+    echo "    updating submodules to remote heads..."
+    git submodule update --init --remote --recursive
+    echo "    ✓ submodules updated to remote heads"
   fi
 done
 ```
@@ -258,16 +298,22 @@ When `submodules: true` is set for a repo, the skill runs
 cloning. This initializes submodules and checks out the commits pinned by the
 superproject.
 
-Do not use `/multi-repo sync` to intentionally advance a submodule pointer. For
-that, update the submodule in a feature branch/worktree, test it, commit inside
-the submodule, then commit the superproject pointer bump as a normal project
-change.
+Use `/multi-repo update` when you intentionally want
+`git submodule update --init --remote --recursive`. After testing, commit any
+resulting superproject pointer bump as a normal project change.
 
-To update only one repo's submodules manually:
+To sync only one repo's pinned submodules manually:
 
 ```bash
 cd "$ROOT/$path"
 git submodule update --init --recursive
+```
+
+To advance only one repo's submodules to remote heads manually:
+
+```bash
+cd "$ROOT/$path"
+git submodule update --init --remote --recursive
 ```
 
 ---
@@ -283,4 +329,6 @@ Typical multi-agent + multi-repo flow:
 1. Agent reads `REPOS.md` to understand the workspace layout.
 2. Agent checks `repos/<alias>.md` for the repo it will work in.
 3. Agent creates a worktree in that repo and claims the task (per `/multi-agent`).
-4. After finishing, agent runs `/multi-repo sync` to propagate changes across the workspace.
+4. After finishing, agent runs `/multi-repo sync` to propagate pinned changes
+   across the workspace, or `/multi-repo update` when intentionally advancing
+   submodules to remote heads.
