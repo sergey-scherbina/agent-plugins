@@ -288,24 +288,149 @@ Always use `origin/main` — not local `git log` — to decide whether a task is
 
 ## Autonomous loop
 
+Each project's `AGENTS.md` may add project-specific status format, queue file name, and empty-queue examples. The generic protocol is here.
+
+### Status command
+
+When the user asks for status ("статус", "status", "план", "что делаем"):
+
+1. `git fetch origin`
+2. `git show origin/main:SPRINT.md` + `git ls-tree origin/main .work/active/`
+3. Print a structured summary — **do NOT start working**
+
 ```
-LOOP:
-  1. From MAIN CHECKOUT: fetch, ff-merge, check paused flag, re-read AGENTS.md
-  2. Read origin/main:SPRINT.md + ls .work/active/ — pick top unclaimed task
-  3. Claim (from main checkout) → push → if rejected go to 1
-  4. Create worktree; update claim to in-progress
-  5. Write spec first (/spec-dev write) → implement against spec → run tests → fix until green
-     At each intermediate commit and every ~10 min of dirty work:
-       update heartbeat + done-so-far + next → push claim-update to origin/main
-       rebase worktree on origin/main
-  6. Update docs (feature spec, SPEC.md, openapi if needed)
-  7. Bookkeeping commit: remove claim, move task to CHANGELOG.md (prepend), delete from SPRINT.md
-  8. Push to origin/main; sync local main; delete worktree + branch
-  9. Report "✓ <slug>: <summary>" BEFORE starting next iteration
- 10. Go to 1
+ACTIVE: <slug> — <description>    ← or "nothing active"
+
+Pending: N tasks
+  <slug> — <description>
+  ...
+
+Next up: <slug> — <one-line description>
 ```
 
-Stop conditions: `.work/paused` on `origin/main`, user stop signal, `status: blocked`.
+Name the one task you recommend doing next, with a short reason.
+
+### Starting
+
+| Phrase | Meaning |
+|---|---|
+| "работай" / "go" / "start" | Start from the top of the queue |
+| "продолжай" / "continue" | Resume — skip done tasks, pick next pending |
+| "работай над X" / "do X" | Start with specific slug, then continue |
+
+Announce the first claimed task before any work:
+```
+▶ <slug> — <one-line description>
+```
+Work silently. On each completion:
+```
+✓ <slug> — <one-line summary>
+▶ <next-slug> — <description>   ← omit if stopping
+```
+
+### Stopping
+
+**Graceful:** "стоп" / "stop" / "pause" / "хватит" / "достаточно" — finish current task then stop.
+
+**Immediate:** "стоп сейчас" / "stop now" / "abort" — stop at next safe checkpoint. If work is green, commit and push before stopping; if red, leave worktree open and report.
+
+**File-based pause** (survives context rotations, works across agents and sessions):
+
+```bash
+# Pause:
+touch .work/paused
+git add .work/paused && git commit -m "pause: autonomous queue"
+git push origin main
+
+# Resume:
+git rm .work/paused && git commit -m "resume: autonomous queue"
+git push origin main
+```
+
+Checked at step 1 of every iteration. A chat message only stops the current session; file-based pause is the reliable mechanism for unattended stops.
+
+### The loop
+
+> **⚠️ CRITICAL** — steps 1–4 and 9–11 MUST run from the **main checkout** (where `.git` is a directory, not a file). Inside a worktree, `git commit` writes to the feature branch, so the claim file never reaches `origin/main` — another agent will pick the same task.
+
+```
+LOOP:
+  1.  # ── Main checkout ──
+      test -d .git && test "$(git symbolic-ref --short HEAD)" = "main"
+      git fetch origin && git merge --ff-only origin/main
+      git diff --cached --quiet
+      Re-read AGENTS.md from origin/main — apply any updated rules
+      git ls-tree origin/main .work/ | grep -q paused → STOP
+      if user sent stop signal → STOP
+
+  2.  git show origin/main:SPRINT.md         # pending list (authoritative)
+      git ls-tree origin/main .work/active/  # claimed slugs (authoritative)
+      # Never: cat SPRINT.md or ls .work/active/ — those may be stale
+      if no unclaimed pending tasks → see §"Empty queue"
+
+  3.  Pick highest-priority unclaimed pending task.
+      if genuinely ambiguous → ask ONE clear question, wait, then proceed.
+
+  4.  # ── Claim — main checkout only ──
+      printf '%s\nagent: %s\nheartbeat: %s\nstatus: not-started\ndone-so-far:\nnext: %s\n' \
+        "<worktree-name> <timestamp>" "<agent-id>" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "<first step>" \
+        > .work/active/<slug>.claim
+      git add .work/active/<slug>.claim
+      git commit -m "claim: <slug>"
+      git push origin main
+      if push rejected → go to 1
+
+  5.  Create worktree off updated origin/main.
+      Push claim-update (status: in-progress, done-so-far: worktree created)
+      from main checkout, then rebase worktree on origin/main.
+
+  6.  /spec-dev write <slug>        # spec before any code
+      Implement → tests → fix until green.
+      At each intermediate commit and whenever dirty > ~10 min:
+        push claim-update (heartbeat + done-so-far + next) from main checkout
+        rebase worktree on origin/main
+      if tests unfixably red → claim status: blocked, leave worktree open, STOP
+
+  7.  Update docs: feature spec, project-level spec, openapi if endpoints changed.
+
+  8.  Bookkeeping commit (own commit, never bundled with feature code):
+        git rm .work/active/<slug>.claim
+        delete task from SPRINT.md
+        prepend entry to CHANGELOG.md
+
+  9.  Rebase worktree on origin/main if it moved → push → sync local main:
+        git branch -f main origin/main
+
+  10. Delete worktree + branch:
+        git worktree remove --force <path>
+        git branch -D <branch>
+      Verify: git worktree list must not show the branch; test ! -d <path>
+
+  11. # ── Report BEFORE next iteration ──
+      "✓ <slug>: <one-line summary>"
+      Name next recommended task + short reason.
+      If session is long (multi-phase loop, >~50% context): suggest /compact.
+
+  12. Go to 1
+```
+
+### Empty queue
+
+When there are no unclaimed pending tasks — do not stop silently:
+
+1. Read `BACKLOG.md` — find top 3 most actionable items not yet in the queue.
+2. Present each with a one-line rationale and rough effort.
+3. Wait for the user's decision. **Do not add anything without explicit instruction** — priorities are the user's call.
+
+### Recording tech debt
+
+When you notice tech debt or a future improvement while working — record it immediately:
+
+- Add an entry to `BACKLOG.md` in the appropriate section.
+- Optionally add a one-liner to the queue file if small and actionable.
+- Include in the **same commit** as the work that surfaced it — never in a code comment.
+
+Do NOT stop the current task to fix it.
 
 ---
 
