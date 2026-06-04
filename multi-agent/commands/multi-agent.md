@@ -294,7 +294,7 @@ LOOP:
   2. Read origin/main:SPRINT.md + ls .work/active/ — pick top unclaimed task
   3. Claim (from main checkout) → push → if rejected go to 1
   4. Create worktree; update claim to in-progress
-  5. Implement → run tests → fix until green
+  5. Write spec first (/spec-dev write) → implement against spec → run tests → fix until green
      At each intermediate commit and every ~10 min of dirty work:
        update heartbeat + done-so-far + next → push claim-update to origin/main
        rebase worktree on origin/main
