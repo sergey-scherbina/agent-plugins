@@ -66,9 +66,21 @@ mkdir -p "$SPECS_DIR"
 
 ## Out of scope
 - <What this feature explicitly does NOT do.>
+
+<!-- Optional sections — include when relevant: -->
+
+## Design
+<Architecture, module layout, key types, composition with existing code.
+Use when the "how" is non-obvious or has meaningful alternatives.>
+
+## Decisions
+<Choices made and alternatives rejected. One entry per decision:>
+- **<choice>** — chosen because <reason>. Rejected: <alternative> (<why not>).
 ```
 
 The `[ ]` items are behavior checkboxes, not task markers — check them off as tests cover each scenario.
+
+`Design` and `Decisions` are optional — omit them for trivial features. Include `Design` when the architecture is non-obvious. Include `Decisions` whenever a meaningful alternative was considered and rejected, so the next agent doesn't re-investigate the same fork.
 
 3. Commit the spec **before any implementation**:
 ```bash
