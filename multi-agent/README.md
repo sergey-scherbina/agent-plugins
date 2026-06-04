@@ -20,7 +20,7 @@ Plus the full reference: claim file format, worktree workflow, autonomous loop.
 
 ```bash
 # Add this repo as a marketplace (once per machine)
-claude plugins marketplace add github:sergey-scherbina/claude-plugins
+claude plugins marketplace add github:sergey-scherbina/agent-plugins
 
 # Install the plugin
 claude plugins install multi-agent
@@ -33,8 +33,8 @@ For cross-agent use (Codex, etc.) also run `install.sh` — see Option B.
 ### Option B — Direct install (works for all agents)
 
 ```bash
-git clone https://github.com/sergey-scherbina/claude-plugins
-cd claude-plugins
+git clone https://github.com/sergey-scherbina/agent-plugins
+cd agent-plugins
 ./install.sh multi-agent
 ```
 
@@ -58,5 +58,5 @@ Both Claude Code and Codex will read the file from that stable path.
 claude plugins update multi-agent
 
 # Any agent
-git -C claude-plugins pull && ./install.sh multi-agent
+git -C agent-plugins pull && ./install.sh multi-agent
 ```

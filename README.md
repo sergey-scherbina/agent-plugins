@@ -17,7 +17,7 @@ reads AGENTS.md (Codex, etc.).
 
 ```bash
 # Add as marketplace (once per machine)
-claude plugins marketplace add github:sergey-scherbina/claude-plugins
+claude plugins marketplace add github:sergey-scherbina/agent-plugins
 
 # Install a plugin-backed skill
 claude plugins install multi-agent
@@ -26,8 +26,8 @@ claude plugins install multi-agent
 ### For any agent (Codex, etc.)
 
 ```bash
-git clone https://github.com/sergey-scherbina/claude-plugins
-cd claude-plugins
+git clone https://github.com/sergey-scherbina/agent-plugins
+cd agent-plugins
 ./install.sh              # installs all plugins
 ./install.sh multi-agent  # installs one plugin
 ```

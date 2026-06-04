@@ -31,7 +31,7 @@ to the matching section.
 Three keys in `AGENTS.md` configure the pipeline files:
 
 ```yaml
-SPRINT: WORK_QUEUE.md    # work queue agents pick from     (default: SPRINT.md)
+SPRINT: SPRINT.md        # work queue agents pick from     (default: SPRINT.md)
 BACKLOG: BACKLOG.md      # long-term backlog               (default: BACKLOG.md)
 CHANGELOG: CHANGELOG.md  # append-only completion record   (default: CHANGELOG.md)
 ```
@@ -103,7 +103,10 @@ git fetch origin
 git merge --ff-only origin/main
 git diff --quiet
 git diff --cached --quiet
-git ls-tree -r --name-only origin/main .work/active/ 2>/dev/null | grep -Fx ".work/active/<slug>.claim" && echo "ALREADY CLAIMED — stop"
+if git ls-tree -r --name-only origin/main .work/active/ 2>/dev/null | grep -Fx ".work/active/<slug>.claim"; then
+  echo "ALREADY CLAIMED — stop"
+  exit 1
+fi
 ```
 
 2. Write the claim file:
@@ -125,6 +128,7 @@ git push origin main     # if rejected: another agent won the race — fetch and
 BRANCH="feature/<slug>"
 WT=".worktrees/$BRANCH"
 git worktree add "$WT" -b "$BRANCH" origin/main
+git -C "$WT" submodule update --init --recursive
 ```
 
 4. Immediately update claim to `in-progress` (from main checkout):
@@ -271,13 +275,16 @@ directly on the shared `main` checkout.
 BRANCH="feature/your-task-name"
 WT=".worktrees/$BRANCH"
 git worktree add "$WT" -b "$BRANCH" origin/main
+git -C "$WT" submodule update --init --recursive
 # all work from $WT
 ```
 
 When done:
 ```bash
 git -C "$WT" push origin "$BRANCH:main"   # rebase first if behind
-git branch -f main origin/main            # sync local main (mandatory)
+MAIN="$(git worktree list --porcelain | awk '/^worktree / {p=$2} /^branch refs\/heads\/main$/ {print p; exit}')"
+test -n "$MAIN"
+git -C "$MAIN" fetch origin && git -C "$MAIN" merge --ff-only origin/main
 git worktree remove --force "$WT"
 git branch -D "$BRANCH"
 ```
@@ -415,7 +422,7 @@ LOOP:
       git push origin main
       if push rejected → go to 1
 
-  5.  Create worktree off updated origin/main.
+  5.  Create worktree off updated origin/main and initialize submodules in it.
       Push claim-update (status: in-progress, done-so-far: worktree created)
       from main checkout, then rebase worktree on origin/main.
 
@@ -434,8 +441,11 @@ LOOP:
           (for example: delete the entry, or mark [x] — whatever the project uses)
         prepend entry to "$CHANGELOG"
 
-  9.  Rebase worktree on origin/main if it moved → push → sync local main:
-        git branch -f main origin/main
+  9.  Rebase worktree on origin/main if it moved → push → sync local main
+      from the checked-out main checkout:
+        MAIN="$(git worktree list --porcelain | awk '/^worktree / {p=$2} /^branch refs\/heads\/main$/ {print p; exit}')"
+        test -n "$MAIN"
+        git -C "$MAIN" fetch origin && git -C "$MAIN" merge --ff-only origin/main
 
   10. Delete worktree + branch:
         git worktree remove --force <path>
