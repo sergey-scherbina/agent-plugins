@@ -128,8 +128,14 @@ git push origin main     # if rejected: another agent won the race — fetch and
 BRANCH="feature/<slug>"
 WT=".worktrees/$BRANCH"
 git worktree add "$WT" -b "$BRANCH" origin/main
-git -C "$WT" submodule update --init --recursive
 ```
+
+> **Skill files:** submodules are only initialized in the shared main repo.
+> From a worktree, read skills via the main repo root:
+> ```bash
+> MAIN=$(git worktree list | head -1 | awk '{print $1}')
+> # e.g. $MAIN/.agents/plugins/spec-dev/commands/spec-dev.md
+> ```
 
 4. Immediately update claim to `in-progress` (from main checkout):
 ```bash
@@ -275,8 +281,8 @@ directly on the shared `main` checkout.
 BRANCH="feature/your-task-name"
 WT=".worktrees/$BRANCH"
 git worktree add "$WT" -b "$BRANCH" origin/main
-git -C "$WT" submodule update --init --recursive
 # all work from $WT
+# skill files: read from MAIN=$(git worktree list | head -1 | awk '{print $1}')
 ```
 
 When done:
@@ -422,7 +428,8 @@ LOOP:
       git push origin main
       if push rejected → go to 1
 
-  5.  Create worktree off updated origin/main and initialize submodules in it.
+  5.  Create worktree off updated origin/main (no submodule init needed — skills
+      live in the main repo, read via MAIN=$(git worktree list | head -1 | awk '{print $1}')).
       Push claim-update (status: in-progress, done-so-far: worktree created)
       from main checkout, then rebase worktree on origin/main.
 
