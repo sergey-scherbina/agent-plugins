@@ -299,13 +299,79 @@ LOOP:
        update heartbeat + done-so-far + next → push claim-update to origin/main
        rebase worktree on origin/main
   6. Update docs (feature spec, SPEC.md, openapi if needed)
-  7. Bookkeeping commit: remove claim, move task to Done in WORK_QUEUE.md
+  7. Bookkeeping commit: remove claim, move task to CHANGELOG.md (prepend), delete from WORK_QUEUE.md
   8. Push to origin/main; sync local main; delete worktree + branch
   9. Report "✓ <slug>: <summary>" BEFORE starting next iteration
  10. Go to 1
 ```
 
 Stop conditions: `.work/paused` on `origin/main`, user stop signal, `status: blocked`.
+
+---
+
+## Task planning and tracking
+
+Three files, strict separation of concerns. Never accumulate `[x]` done markers — move, don't mark.
+
+### Files
+
+**`BACKLOG.md`** — long-term ideas and future milestones. Agents do not pick work from here directly.
+
+```markdown
+# Backlog
+
+## <milestone or theme>
+- [ ] <slug> — <short description>
+```
+
+Move items to `WORK_QUEUE.md` when they are ready to be worked on. Delete them from `BACKLOG.md` at that point (do not mark done).
+
+---
+
+**`WORK_QUEUE.md`** — short-term prioritized queue. This is what agents pick from.
+
+```markdown
+# Work queue
+
+## Doing
+- [ ] <slug> — <description>   ← claimed tasks (claim file is authoritative)
+
+## Queue
+- [ ] <slug> — <description>   ← highest priority first
+- [ ] <slug> — <description>
+
+## Backlog
+(optional staging area for items about to be promoted from BACKLOG.md)
+```
+
+When a task is complete: **delete** it from `WORK_QUEUE.md` and prepend it to `CHANGELOG.md`. Do not leave `[x]` entries.
+
+---
+
+**`CHANGELOG.md`** — append-only record of completed work. Newest first.
+
+```markdown
+# Changelog
+
+## <slug> — <one-line summary>
+Completed: <ISO date>
+<optional 1-2 sentence description of what changed>
+
+## <slug> — ...
+```
+
+---
+
+### Promotion flow
+
+```
+BACKLOG.md  →  WORK_QUEUE.md  →  (claimed)  →  CHANGELOG.md
+  (idea)        (ready)           (doing)        (done)
+```
+
+- Items move **forward** through the pipeline; they are never marked done in-place.
+- Only `WORK_QUEUE.md` is read by agents during the autonomous loop — `BACKLOG.md` is human-curated.
+- The claim file in `.work/active/` is the authoritative source for "who is working on what right now."
 
 ---
 
