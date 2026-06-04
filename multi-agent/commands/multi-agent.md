@@ -291,7 +291,7 @@ Always use `origin/main` — not local `git log` — to decide whether a task is
 ```
 LOOP:
   1. From MAIN CHECKOUT: fetch, ff-merge, check paused flag, re-read AGENTS.md
-  2. Read origin/main:WORK_QUEUE.md + ls .work/active/ — pick top unclaimed task
+  2. Read origin/main:SPRINT.md + ls .work/active/ — pick top unclaimed task
   3. Claim (from main checkout) → push → if rejected go to 1
   4. Create worktree; update claim to in-progress
   5. Implement → run tests → fix until green
@@ -299,7 +299,7 @@ LOOP:
        update heartbeat + done-so-far + next → push claim-update to origin/main
        rebase worktree on origin/main
   6. Update docs (feature spec, SPEC.md, openapi if needed)
-  7. Bookkeeping commit: remove claim, move task to CHANGELOG.md (prepend), delete from WORK_QUEUE.md
+  7. Bookkeeping commit: remove claim, move task to CHANGELOG.md (prepend), delete from SPRINT.md
   8. Push to origin/main; sync local main; delete worktree + branch
   9. Report "✓ <slug>: <summary>" BEFORE starting next iteration
  10. Go to 1
@@ -324,14 +324,14 @@ Three files, strict separation of concerns. Never accumulate `[x]` done markers 
 - [ ] <slug> — <short description>
 ```
 
-Move items to `WORK_QUEUE.md` when they are ready to be worked on. Delete them from `BACKLOG.md` at that point (do not mark done).
+Move items to `SPRINT.md` when they are ready to be worked on. Delete them from `BACKLOG.md` at that point (do not mark done).
 
 ---
 
-**`WORK_QUEUE.md`** — short-term prioritized queue. This is what agents pick from.
+**`SPRINT.md`** — short-term prioritized queue. This is what agents pick from.
 
 ```markdown
-# Work queue
+# Sprint
 
 ## Doing
 - [ ] <slug> — <description>   ← claimed tasks (claim file is authoritative)
@@ -344,7 +344,7 @@ Move items to `WORK_QUEUE.md` when they are ready to be worked on. Delete them f
 (optional staging area for items about to be promoted from BACKLOG.md)
 ```
 
-When a task is complete: **delete** it from `WORK_QUEUE.md` and prepend it to `CHANGELOG.md`. Do not leave `[x]` entries.
+When a task is complete: **delete** it from `SPRINT.md` and prepend it to `CHANGELOG.md`. Do not leave `[x]` entries.
 
 ---
 
@@ -365,12 +365,12 @@ Completed: <ISO date>
 ### Promotion flow
 
 ```
-BACKLOG.md  →  WORK_QUEUE.md  →  (claimed)  →  CHANGELOG.md
+BACKLOG.md  →  SPRINT.md  →  (claimed)  →  CHANGELOG.md
   (idea)        (ready)           (doing)        (done)
 ```
 
 - Items move **forward** through the pipeline; they are never marked done in-place.
-- Only `WORK_QUEUE.md` is read by agents during the autonomous loop — `BACKLOG.md` is human-curated.
+- Only `SPRINT.md` is read by agents during the autonomous loop — `BACKLOG.md` is human-curated.
 - The claim file in `.work/active/` is the authoritative source for "who is working on what right now."
 
 ---
