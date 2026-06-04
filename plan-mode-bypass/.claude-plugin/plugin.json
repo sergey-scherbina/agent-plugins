@@ -1,0 +1,9 @@
+{
+  "name": "plan-mode-bypass",
+  "version": "1.0.0",
+  "description": "Restores bypass-permissions mode after plan approval in Claude Code — PreToolUse hook auto-approves all tool calls except ExitPlanMode so the Approve/Cancel dialog still appears.",
+  "author": {
+    "name": "Sergiy Shcherbyna",
+    "email": "sergey.scherbina@gmail.com"
+  }
+}
