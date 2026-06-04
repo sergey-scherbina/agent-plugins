@@ -1,55 +1,82 @@
 ---
 description: "Spec-driven development workflow. Write the spec before the code, implement against it, keep them in sync. Use when starting a new feature, reviewing an existing spec, or verifying implementation matches spec."
-argument-hint: "write <slug> | review <slug> | verify <slug>"
+argument-hint: "write <slug> | review <slug> | verify <slug> | global"
 ---
 
 # Spec-driven development
 
 Write the spec before the code. The spec is the source of truth — implementation follows it, never silently diverges from it.
 
+**Two levels of spec:**
+
+| Level | File | Purpose |
+|---|---|---|
+| Global | `$GLOBAL_SPEC` (default: `SPEC.md`) | Normative whole-project spec — language surface, runtime contract, invariants |
+| Feature | `$SPECS_DIR/<slug>.md` (default: `specs/<slug>.md`) | Per-feature design — scope, interface, behavior items |
+
 **Action dispatch:**
 
 | Task | Section |
 |---|---|
-| Start a new feature | [→ write](#write-slug) |
-| Review an existing spec | [→ review](#review-slug) |
+| Read the global project spec | [→ global](#global) |
+| Start a new feature spec | [→ write](#write-slug) |
+| Review an existing feature spec | [→ review](#review-slug) |
 | Check implementation matches spec | [→ verify](#verify-slug) |
 
 ---
 
 ## Configuration
 
-The spec directory is configurable per project. Add one line to `AGENTS.md`:
+Both paths are configurable per project. Add to `AGENTS.md`:
 
 ```yaml
-specs: docs/specs
+specs: docs/specs   # directory for per-feature specs (default: specs/)
+SPEC: SPEC.md       # global project spec file         (default: SPEC.md)
 ```
 
-If absent, the default is `specs/`. The skill reads this before every action.
+Resolution (run at the start of every action):
 
 ```bash
 SPECS_DIR=$(grep -m1 '^specs:' AGENTS.md 2>/dev/null | awk '{print $2}')
 SPECS_DIR="${SPECS_DIR:-specs}"
+GLOBAL_SPEC=$(grep -m1 '^SPEC:' AGENTS.md 2>/dev/null | awk '{print $2}')
+GLOBAL_SPEC="${GLOBAL_SPEC:-SPEC.md}"
 ```
 
 ---
 
 ## Actions
 
+### global
+
+Read and summarize the global project spec.
+
+```bash
+cat "$GLOBAL_SPEC"
+```
+
+Use this before writing any feature spec — feature specs must not conflict with language invariants in `$GLOBAL_SPEC`. Report a summary of the relevant sections and flag any pre-existing gaps or contradictions.
+
+---
+
 ### write `<slug>`
 
 Before writing any code, write the spec.
 
-1. Resolve spec path:
+1. Resolve paths:
 ```bash
 SLUG="<slug>"
 SPECS_DIR=$(grep -m1 '^specs:' AGENTS.md 2>/dev/null | awk '{print $2}')
 SPECS_DIR="${SPECS_DIR:-specs}"
+GLOBAL_SPEC=$(grep -m1 '^SPEC:' AGENTS.md 2>/dev/null | awk '{print $2}')
+GLOBAL_SPEC="${GLOBAL_SPEC:-SPEC.md}"
 SPEC_FILE="$SPECS_DIR/$SLUG.md"
 mkdir -p "$SPECS_DIR"
 ```
 
-2. Create `$SPEC_FILE` using this template:
+2. Read `$GLOBAL_SPEC` first — check that the feature does not conflict with existing language invariants or runtime contracts.
+
+3. Create `$SPEC_FILE` using this template:
 
 ```markdown
 # <Feature name>
@@ -87,9 +114,11 @@ The `[ ]` items are behavior checkboxes, not task markers — check them off as 
 
 `Design` and `Decisions` are optional — omit them for trivial features. Include `Design` when the architecture is non-obvious. Include `Decisions` whenever a meaningful alternative was considered and rejected, so the next agent doesn't re-investigate the same fork. Fill in `Results` after the verify step — it becomes the baseline for future agents working in the same area.
 
-3. Commit the spec **before any implementation**:
+4. If the feature adds new language constructs or changes runtime behavior, update the relevant section in `$GLOBAL_SPEC` as well.
+
+5. Commit the spec **before any implementation**:
 ```bash
-git add "$SPEC_FILE"
+git add "$SPEC_FILE" "$GLOBAL_SPEC"
 git commit -m "spec: $SLUG"
 ```
 
@@ -104,6 +133,8 @@ Read an existing spec and assess it.
 ```bash
 SPECS_DIR=$(grep -m1 '^specs:' AGENTS.md 2>/dev/null | awk '{print $2}')
 SPECS_DIR="${SPECS_DIR:-specs}"
+GLOBAL_SPEC=$(grep -m1 '^SPEC:' AGENTS.md 2>/dev/null | awk '{print $2}')
+GLOBAL_SPEC="${GLOBAL_SPEC:-SPEC.md}"
 cat "$SPECS_DIR/<slug>.md"
 ```
 
@@ -111,6 +142,7 @@ Check for:
 - Missing interface definition (what do callers actually depend on?)
 - Vague behavior items (can a test be written for this?)
 - Missing out-of-scope section (scope creep risk)
+- Conflicts with `$GLOBAL_SPEC` (language invariants, runtime contracts)
 - Conflicts with other specs in `$SPECS_DIR/`
 
 Report findings and wait for direction before making changes.
@@ -124,6 +156,8 @@ Check that the implementation matches the spec.
 ```bash
 SPECS_DIR=$(grep -m1 '^specs:' AGENTS.md 2>/dev/null | awk '{print $2}')
 SPECS_DIR="${SPECS_DIR:-specs}"
+GLOBAL_SPEC=$(grep -m1 '^SPEC:' AGENTS.md 2>/dev/null | awk '{print $2}')
+GLOBAL_SPEC="${GLOBAL_SPEC:-SPEC.md}"
 cat "$SPECS_DIR/<slug>.md"
 ```
 
@@ -135,12 +169,16 @@ Report uncovered items. If implementation differs from spec:
 - Small divergence (impl is right): update the spec, commit `spec-update: <slug>`
 - Large divergence (spec is right): file as a bug, do not silently accept
 
+Also verify that `$GLOBAL_SPEC` is still in sync — if the feature changed global invariants, the global spec must reflect them.
+
 ---
 
 ## Spec lifecycle
 
 ```
-write spec → commit "spec: <slug>"
+read global spec ($GLOBAL_SPEC) → check for conflicts
+    ↓
+write feature spec → commit "spec: <slug>"
     ↓
 implement against spec
     ↓
@@ -156,6 +194,7 @@ spec stays in repo as living documentation
 - Never let implementation silently diverge from the spec.
 - If the spec is wrong, fix the spec first — in its own commit, before fixing the code.
 - Specs are never deleted when a feature is done — they become living documentation.
+- `$GLOBAL_SPEC` is the normative source for language-level invariants — feature specs must not contradict it.
 
 ---
 
@@ -164,9 +203,10 @@ spec stays in repo as living documentation
 In the autonomous loop, step 5 expands to:
 
 ```
-5a. Run /spec-dev write <slug> → commit spec
-5b. Implement against spec
-5c. If spec gaps found → /spec-dev write <slug> (update) → commit spec-update
-5d. Run tests until green
-5e. Run /spec-dev verify <slug> → check off behavior items
+5a. Run /spec-dev global → read $GLOBAL_SPEC, check for conflicts
+5b. Run /spec-dev write <slug> → commit spec (+ update global spec if needed)
+5c. Implement against spec
+5d. If spec gaps found → /spec-dev write <slug> (update) → commit spec-update
+5e. Run tests until green
+5f. Run /spec-dev verify <slug> → check off behavior items
 ```
