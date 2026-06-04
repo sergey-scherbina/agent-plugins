@@ -1,13 +1,15 @@
-# claude-plugins
+# agent-plugins
 
-Personal Claude Code plugin marketplace. Works with Claude Code and any
-agent that reads AGENTS.md (Codex, etc.).
+Personal agent skill collection. Works with Claude Code and any agent that
+reads AGENTS.md (Codex, etc.).
 
-## Plugins
+## Skills
 
-| Plugin | Description |
+| Skill | Description |
 |---|---|
 | [multi-agent](./multi-agent/) | Coordination protocol for parallel agents in feature branches |
+| [multi-repo](./multi-repo/) | Workspace management for repositories listed in `REPOS.md` |
+| [spec-dev](./spec-dev/) | Spec-driven development workflow: write, implement, verify |
 
 ## Installation
 
@@ -17,7 +19,7 @@ agent that reads AGENTS.md (Codex, etc.).
 # Add as marketplace (once per machine)
 claude plugins marketplace add github:sergey-scherbina/claude-plugins
 
-# Install a plugin
+# Install a plugin-backed skill
 claude plugins install multi-agent
 ```
 
@@ -33,7 +35,7 @@ cd claude-plugins
 Files are copied to `~/.claude/commands/`. Reference from `AGENTS.md`:
 
 ```
-Read ~/.claude/commands/multi-agent.md for the multi-agent coordination protocol.
+Read ~/.claude/commands/<skill>.md for the relevant protocol.
 ```
 
 ## Adding a new plugin

@@ -290,13 +290,34 @@ Always use `origin/main` — not local `git log` — to decide whether a task is
 
 Each project's `AGENTS.md` may add project-specific status format, queue file name, and empty-queue examples. The generic protocol is here.
 
+### Queue file resolution
+
+The default queue file is `SPRINT.md`. A project may override it in `AGENTS.md`
+with this line:
+
+```markdown
+**Queue file for this project:** `WORK_QUEUE.md`
+```
+
+Resolve the queue file before every status or loop step that reads pending work:
+
+```bash
+QUEUE_FILE="$(
+  git show origin/main:AGENTS.md 2>/dev/null |
+    sed -n 's/^\*\*Queue file for this project:\*\* `\([^`]*\)`.*/\1/p' |
+    head -1
+)"
+QUEUE_FILE="${QUEUE_FILE:-SPRINT.md}"
+```
+
 ### Status command
 
 When the user asks for status ("статус", "status", "план", "что делаем"):
 
 1. `git fetch origin`
-2. `git show origin/main:SPRINT.md` + `git ls-tree origin/main .work/active/`
-3. Print a structured summary — **do NOT start working**
+2. Resolve `QUEUE_FILE`
+3. `git show origin/main:"$QUEUE_FILE"` + `git ls-tree origin/main .work/active/`
+4. Print a structured summary — **do NOT start working**
 
 ```
 ACTIVE: <slug> — <description>    ← or "nothing active"
@@ -363,9 +384,10 @@ LOOP:
       git ls-tree origin/main .work/ | grep -q paused → STOP
       if user sent stop signal → STOP
 
-  2.  git show origin/main:SPRINT.md         # pending list (authoritative)
+  2.  Resolve QUEUE_FILE from origin/main:AGENTS.md (default: SPRINT.md)
+      git show origin/main:"$QUEUE_FILE"    # pending list (authoritative)
       git ls-tree origin/main .work/active/  # claimed slugs (authoritative)
-      # Never: cat SPRINT.md or ls .work/active/ — those may be stale
+      # Never: cat "$QUEUE_FILE" or ls .work/active/ — those may be stale
       if no unclaimed pending tasks → see §"Empty queue"
 
   3.  Pick highest-priority unclaimed pending task.
@@ -395,7 +417,8 @@ LOOP:
 
   8.  Bookkeeping commit (own commit, never bundled with feature code):
         git rm .work/active/<slug>.claim
-        delete task from SPRINT.md
+        update "$QUEUE_FILE" according to the project AGENTS.md lifecycle
+          (for example: delete from SPRINT.md, or mark [x] in WORK_QUEUE.md)
         prepend entry to CHANGELOG.md
 
   9.  Rebase worktree on origin/main if it moved → push → sync local main:
@@ -436,7 +459,11 @@ Do NOT stop the current task to fix it.
 
 ## Task planning and tracking
 
-Three files, strict separation of concerns. Never accumulate `[x]` done markers — move, don't mark.
+These defaults apply when the project does not override them in `AGENTS.md`.
+When `AGENTS.md` names a queue file or lifecycle, the project-specific rule wins.
+
+Three files, strict separation of concerns. In the default lifecycle, never
+accumulate `[x]` done markers — move, don't mark.
 
 ### Files
 
@@ -449,11 +476,14 @@ Three files, strict separation of concerns. Never accumulate `[x]` done markers 
 - [ ] <slug> — <short description>
 ```
 
-Move items to `SPRINT.md` when they are ready to be worked on. Delete them from `BACKLOG.md` at that point (do not mark done).
+Move items to the queue file when they are ready to be worked on. In the default
+lifecycle that file is `SPRINT.md`. Delete promoted items from `BACKLOG.md` at
+that point (do not mark done).
 
 ---
 
-**`SPRINT.md`** — short-term prioritized queue. This is what agents pick from.
+**`SPRINT.md`** — default short-term prioritized queue. This is what agents pick
+from unless the project defines another `QUEUE_FILE`.
 
 ```markdown
 # Sprint
@@ -469,7 +499,9 @@ Move items to `SPRINT.md` when they are ready to be worked on. Delete them from 
 (optional staging area for items about to be promoted from BACKLOG.md)
 ```
 
-When a task is complete: **delete** it from `SPRINT.md` and prepend it to `CHANGELOG.md`. Do not leave `[x]` entries.
+When a task is complete in the default lifecycle: **delete** it from `SPRINT.md`
+and prepend it to `CHANGELOG.md`. Do not leave `[x]` entries unless the project
+AGENTS.md explicitly uses a check-off lifecycle.
 
 ---
 
@@ -490,12 +522,12 @@ Completed: <ISO date>
 ### Promotion flow
 
 ```
-BACKLOG.md  →  SPRINT.md  →  (claimed)  →  CHANGELOG.md
+BACKLOG.md  →  QUEUE_FILE  →  (claimed)  →  CHANGELOG.md
   (idea)        (ready)           (doing)        (done)
 ```
 
-- Items move **forward** through the pipeline; they are never marked done in-place.
-- Only `SPRINT.md` is read by agents during the autonomous loop — `BACKLOG.md` is human-curated.
+- Items move **forward** through the pipeline; in the default lifecycle they are never marked done in-place.
+- Only `QUEUE_FILE` is read by agents during the autonomous loop — `BACKLOG.md` is human-curated.
 - The claim file in `.work/active/` is the authoritative source for "who is working on what right now."
 
 ---

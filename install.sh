@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install multi-agent skill to ~/.claude/commands/
+# Install agent skills to ~/.claude/commands/
 # Works for Claude Code, Codex, and any other agent that reads AGENTS.md.
 #
 # Usage:
@@ -36,4 +36,4 @@ fi
 
 echo ""
 echo "Add to your AGENTS.md:"
-echo "  Read ~/.claude/commands/multi-agent.md for the multi-agent coordination protocol."
+echo "  Read ~/.claude/commands/<skill>.md for the relevant protocol."
