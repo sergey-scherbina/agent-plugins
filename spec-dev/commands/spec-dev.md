@@ -76,11 +76,16 @@ Use when the "how" is non-obvious or has meaningful alternatives.>
 ## Decisions
 <Choices made and alternatives rejected. One entry per decision:>
 - **<choice>** — chosen because <reason>. Rejected: <alternative> (<why not>).
+
+## Results
+<Actual outcomes after implementation: measurements, benchmarks, test counts,
+observed behaviour. Fill in after verify step. Use as "before/after" baseline
+for future agents.>
 ```
 
 The `[ ]` items are behavior checkboxes, not task markers — check them off as tests cover each scenario.
 
-`Design` and `Decisions` are optional — omit them for trivial features. Include `Design` when the architecture is non-obvious. Include `Decisions` whenever a meaningful alternative was considered and rejected, so the next agent doesn't re-investigate the same fork.
+`Design` and `Decisions` are optional — omit them for trivial features. Include `Design` when the architecture is non-obvious. Include `Decisions` whenever a meaningful alternative was considered and rejected, so the next agent doesn't re-investigate the same fork. Fill in `Results` after the verify step — it becomes the baseline for future agents working in the same area.
 
 3. Commit the spec **before any implementation**:
 ```bash
