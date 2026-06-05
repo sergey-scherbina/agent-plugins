@@ -1,52 +1,85 @@
 # agent-plugins
 
-Personal agent skill collection. Works with Claude Code and any agent that
-reads AGENTS.md (Codex, etc.).
+Agent skill collection for parallel multi-branch development workflows.
+Compatible with Claude Code (`/skill-name`) and any agent that reads plain
+Markdown (Codex, GPT, etc.).
 
 ## Skills
 
 | Skill | Description |
 |---|---|
-| [multi-agent](./multi-agent/) | Coordination protocol for parallel agents in feature branches |
-| [multi-repo](./multi-repo/) | Workspace management for repositories listed in `REPOS.md` |
-| [spec-dev](./spec-dev/) | Spec-driven development workflow: write, implement, verify |
+| [multi-agent](./multi-agent/) | Coordination protocol for parallel agents: claim/heartbeat/triage/release + autonomous loop |
+| [multi-repo](./multi-repo/) | Workspace management for repos listed in `REPOS.md`: status, sync, update, clone |
+| [spec-dev](./spec-dev/) | Spec-driven development: write spec → implement → verify, keep spec in sync |
+| [plan-mode-bypass](./plan-mode-bypass/) | Restore `bypassPermissions` after approving a plan in Claude Code plan mode |
 
-## Installation
+## Usage
 
-### For Claude Code
+### Option A — as a git submodule (recommended for projects)
 
 ```bash
-# Add as marketplace (once per machine)
-claude plugins marketplace add github:sergey-scherbina/agent-plugins
-
-# Install a plugin-backed skill
-claude plugins install multi-agent
+# Add once to your project
+git submodule add https://github.com/sergey-scherbina/agent-plugins .agents/plugins
+git submodule update --init .agents/plugins
 ```
 
-### For any agent (Codex, etc.)
+Submodules are only initialized in the **shared main checkout**.
+Worktrees do not need their own submodule init. From any worktree, read
+skills via the main repo root:
+
+```bash
+MAIN=$(git worktree list | head -1 | awk '{print $1}')
+# read: $MAIN/.agents/plugins/<skill>/commands/<skill>.md
+```
+
+Reference this in `AGENTS.md`:
+
+```markdown
+Skill files: `$MAIN/.agents/plugins/<skill>/commands/<skill>.md`
+where MAIN=$(git worktree list | head -1 | awk '{print $1}')
+```
+
+### Option B — install to `~/.claude/commands/`
 
 ```bash
 git clone https://github.com/sergey-scherbina/agent-plugins
 cd agent-plugins
-./install.sh              # installs all plugins
-./install.sh multi-agent  # installs one plugin
+./install.sh              # all skills
+./install.sh multi-agent  # one skill
 ```
 
-Files are copied to `~/.claude/commands/`. Reference from `AGENTS.md`:
+Files land in `~/.claude/commands/<skill>.md`. Works for Claude Code slash
+commands and any agent that resolves `~/.claude/commands/`.
 
+### Option C — Claude Code plugin marketplace
+
+```bash
+claude plugins marketplace add github:sergey-scherbina/agent-plugins
+claude plugins install multi-agent
 ```
-Read ~/.claude/commands/<skill>.md for the relevant protocol.
+
+## Updating
+
+```bash
+# Submodule
+git submodule update --remote .agents/plugins
+
+# Installed copy
+git -C agent-plugins pull && ./install.sh
+
+# Claude Code marketplace
+claude plugins update multi-agent
 ```
 
 ## Adding a new plugin
 
 ```
 my-plugin/
-├── .claude-plugin/
-│   └── plugin.json       ← name, version, description, author
 ├── commands/
-│   └── my-plugin.md      ← AGENTS.md-compatible skill (no tool-specific frontmatter)
+│   └── my-plugin.md      # skill definition — plain Markdown, no tool-specific frontmatter
+├── hooks/                # optional: shell scripts for Claude Code hooks
+│   └── auto-allow.sh
 └── README.md
 ```
 
-The `install.sh` auto-discovers any plugin that has `commands/<name>.md`.
+`install.sh` auto-discovers any directory that has `commands/<name>.md`.
