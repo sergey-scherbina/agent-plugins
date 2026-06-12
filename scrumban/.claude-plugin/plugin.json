@@ -1,0 +1,9 @@
+{
+  "name": "scrumban",
+  "version": "1.0.0",
+  "description": "Durable planning for crash-resilient autonomous work — write-before-do, SPRINT vs BACKLOG, resume-cold entries, queue follow-ups the moment you decide them",
+  "author": {
+    "name": "Sergiy Shcherbyna",
+    "email": "sergey.scherbina@gmail.com"
+  }
+}
