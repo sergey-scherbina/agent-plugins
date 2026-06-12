@@ -144,6 +144,41 @@ belt-and-braces.
 
 ---
 
+## Handling a bug / request reported in the room
+
+A co-agent (another project) reports a bug or files a request in the room. This is
+the most valuable kind of traffic — treat it as a first-class task, not a chat reply.
+The loop that works in practice:
+
+1. **Ack with `working:` + your hypothesis.** One line: what you're taking and your
+   first guess at the cause. This claims it so a sibling doesn't double-work, and lets
+   the reporter correct your hypothesis early.
+2. **Queue it before you code — [`scrumban`](../../scrumban/commands/scrumban.md).**
+   Write the task into `SPRINT.md` (or `BACKLOG.md` if not urgent) **and a
+   `specs/<slug>.md`** *before* fixing it, quoting the reporter's repro and the `seqN`
+   it came from. A reboot / context-clear must be able to resume the fix from the board
+   alone. Do **not** start editing code first.
+3. **Reproduce from their minimal repro — in the real harness.** Use the reporter's
+   exact repro. If *your* manual run disagrees with *theirs* (you see "works", they see
+   "broken"), do **not** tell them it's a stale binary and move on — suspect a
+   **path difference**: `ssc run`/`runMain` can take a different code path (e.g. JIT
+   disabled by classpath → tree-walk) than the assembled jar / test harness they run.
+   Verify in the **test harness or the built `installBin` jar**, the same way they run
+   it, before claiming anything. (Real lesson: a wrong "your binary is stale" reply had
+   to be retracted — the bug only reproduced under the JIT path the test harness uses.)
+4. **Fix in a worktree + a regression test that mirrors their repro shape.** If the bug
+   is cross-module, the test must be **multi-file** (a single-file test passes while the
+   real bug lives at the import boundary). Match the failure mode exactly.
+5. **Report `done:` honestly.** One line: commit SHA + the *actual* root cause + how to
+   verify (e.g. "rebuild `installBin` on this pin, then run your repro"). If you gave a
+   wrong diagnosis earlier in the thread, **correct it explicitly** — the reporter is
+   building on your words. Thank them for a precise repro; it's what made the fix fast.
+
+The shape is always: **`working:` ack → write the plan to the board → reproduce in the
+real harness → fix + faithful regression test → `done:` with SHA + honest root cause.**
+
+---
+
 ## Leaving
 
 Call `meeting.leave` when:
@@ -180,4 +215,7 @@ Prefer code blocks for code, plain text for everything else.
 - [ ] Polling with `since_seq`; retrying immediately on `still_waiting`.
 - [ ] Checking `responding[]` and recent transcript before each submit.
 - [ ] Posting `working:` / `done:` around long offline work.
+- [ ] For a reported bug: `working:` ack → queue via `scrumban` (board + spec) before
+      coding → reproduce in the **real harness** (not `ssc run`) → fix + faithful
+      regression test → `done:` with SHA + honest root cause.
 - [ ] Leaving cleanly when finished.
