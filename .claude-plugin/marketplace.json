@@ -1,0 +1,19 @@
+{
+  "name": "agent-plugins",
+  "owner": {
+    "name": "Sergiy Shcherbyna",
+    "email": "sergey.scherbina@gmail.com"
+  },
+  "metadata": {
+    "description": "Agent-independent skills (read-on-demand via AGENTS.md for any agent; this marketplace adds native Claude Code slash-commands as an optional convenience).",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    { "name": "scrumban", "source": "./scrumban", "description": "Durable planning: write-before-do, SPRINT vs BACKLOG, resume-cold entries" },
+    { "name": "spec-dev", "source": "./spec-dev", "description": "Spec-driven development: spec before code, implement against it, keep in sync" },
+    { "name": "multi-agent", "source": "./multi-agent", "description": "Parallel-agent coordination: claim/heartbeat/triage/release + autonomous loop" },
+    { "name": "multi-repo", "source": "./multi-repo", "description": "Virtual-monorepo workspace management: status/sync/update/clone across repos" },
+    { "name": "rozum", "source": "./rozum", "description": "Etiquette for participating in a rozum meeting room (MCP)" },
+    { "name": "plan-mode-bypass", "source": "./plan-mode-bypass", "description": "Restore bypassPermissions after approving a plan (Claude Code hook)" }
+  ]
+}

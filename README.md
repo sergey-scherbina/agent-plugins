@@ -4,6 +4,11 @@ Agent skill collection for parallel multi-branch development workflows.
 Compatible with Claude Code (`/skill-name`) and any agent that reads plain
 Markdown (Codex, GPT, etc.).
 
+**Zero-install usage:** add this repo as a submodule and point your project's
+`AGENTS.md` at [`AGENTS.md`](./AGENTS.md) (the skill index). Any agent then discovers
+and loads every skill on demand — no per-skill install, and future skills appear
+automatically. The Claude Code marketplace below is an optional native-command layer.
+
 ## Skills
 
 | Skill | Description |

@@ -5,9 +5,12 @@ argument-hint: "queue <slug> | defer <slug> | pick | done <slug> | check"
 
 # Scrumban — durable planning, write before you do
 
-A machine can reboot, a context can `/clear`, an agent can be interrupted — at any
-moment, **including mid-task, after you've done work but before you've recorded what
-you were doing or what's left.** If the plan only lived in your head, that work is
+This skill is agent-independent: it is plain markdown about a discipline, compatible
+with any agent that can read it — load it from `AGENTS.md` or invoke it directly.
+
+A machine can reboot, a context can be cleared or reset, an agent can be interrupted —
+at any moment, **including mid-task, after you've done work but before you've recorded
+what you were doing or what's left.** If the plan only lived in your head, that work is
 orphaned: nobody (not even future-you) knows what you were doing or how to finish.
 
 This skill's one rule: **the board, not your context, is the source of truth for
@@ -101,9 +104,9 @@ A finished task isn't finished until the board says so.
 
 ## check — resume-cold
 
-Before declaring work complete, before a `/clear`, and periodically during long runs,
-ask: **"If my context vanished right now, could a fresh agent continue purely from the
-board + specs + memory, without re-deriving anything?"**
+Before declaring work complete, before any context reset, and periodically during long
+runs, ask: **"If my context vanished right now, could a fresh agent continue purely from
+the board + specs + memory, without re-deriving anything?"**
 
 If the honest answer is "only if they re-discover X / re-run Y / re-decide Z" — write
 X, Y, Z down first, then continue. The board is the contract between sessions and
