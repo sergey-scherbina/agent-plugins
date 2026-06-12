@@ -154,6 +154,12 @@ that outlives the task goes to long-term memory, not just the board.
   claimed before work and released/marked done after, per its claim/heartbeat
   protocol. Scrumban says *what's on the board and how to write it*; multi-agent says
   *how parallel agents coordinate around it*.
+- **`bugs`** — a discovered/reported bug is *also* a board item (queue it here per the
+  triage above), but it gets its own durable ledger (`BUGS.md`) and fix loop in the
+  [`bugs`](../../bugs/commands/bugs.md) skill.
+- **`rozum`** — **prefer rozum for coordination whenever it's available.** When a queued
+  item touches another project or needs the human, raise it in the room rather than
+  working in silence; the board records, the room coordinates.
 
 The throughline across all three: **nothing important lives only in your head.** Plan
 on the board, design in the spec, coordinate via claims, record outcomes in the

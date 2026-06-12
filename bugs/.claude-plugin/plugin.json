@@ -1,0 +1,9 @@
+{
+  "name": "bugs",
+  "version": "1.0.0",
+  "description": "Durable bug handling — a BUGS.md ledger (status/repro/SHA/notes) and a fix loop (reproduce in the real harness, faithful regression test), coordinated via rozum and queued via scrumban",
+  "author": {
+    "name": "Sergiy Shcherbyna",
+    "email": "sergey.scherbina@gmail.com"
+  }
+}

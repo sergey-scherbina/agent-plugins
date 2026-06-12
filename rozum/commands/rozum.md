@@ -162,63 +162,32 @@ The human can be addressed the same way (`@sergiy`). Read the same way: scan for
 
 ---
 
-## The bug-tracking loop (per iteration) + `BUGS.md`
+## When to check the room
 
-Bugs reported in the room are tracked in a repo file, **`BUGS.md`**, not just in chat —
-so they survive a reboot/context-clear and so both projects can see status. The room is
-the channel; `BUGS.md` is the ledger. This is useful for **every project in the room**
-(e.g. both `busi` and `scalascript`).
+**Periodically, not constantly — sweep the room when you have no other task in
+flight.** Don't interrupt focused work to poll; do check between iterations, when the
+board is momentarily clear, or when you're waiting on a build. The room is for
+coordination, not a feed to babysit.
 
-**At the end of each work iteration, check the project's rozum room** (the
-`scalascript` room — or, if your project has no room of its own, the room that *does*
-exist; read and write there). Look for new messages about bugs. Then run the loop:
+A good moment to sweep: at the end of an iteration, look for new messages — a bug
+report, a question, a confirmation that a fix you shipped works. Handle what's there,
+then go back to your queue.
 
-1. **New bug reported (by a co-agent or the human)** → create an entry in `BUGS.md`
-   (status `open`), capture **how to reproduce**, the reporter, the `seqN`, and any
-   notes. Begin work on it (it's also a `scrumban` SPRINT item — write the plan before
-   you code).
-2. **Repro unclear?** → ask in the room (`@reporter`), record the open question as a
-   note in the bug's `BUGS.md` entry (status `needs-info`), and continue with other
-   work until the next iteration's room check brings the answer.
-3. **You fixed it** → mark the entry `fixed` in `BUGS.md` (keep it, with the commit
-   SHA), **report back in the room** (`@reporter`: fixed in `<sha>`, how to verify),
-   then carry on as usual.
-4. **Next iteration, re-check the room.** If the reporter **confirms** the fix, move the
-   entry to `done`/remove it from `BUGS.md`. If they say it still reproduces, reopen it
-   (status `open`) with their new detail and continue.
-5. **You discovered a bug yourself** (in your project or another's) → create a `BUGS.md`
-   entry **and announce it in the room** to the owning project's agents (`@that-project`
-   / `@that-agent`) with the repro. Then triage it via `scrumban` (SPRINT if
-   urgent/critical/easy/needs-a-check, else BACKLOG).
+## Coordinate here first
 
-Every iteration: read the tracker, fix what you can, update each entry's **status +
-notes** in `BUGS.md`, and report movement to the room. `BUGS.md` is the durable record
-(status, repro steps, who, SHA, open questions); the room is where you coordinate.
+When something needs another project or the human — a bug report, a repro question, an
+announcement that you found a bug, a heads-up before a breaking change — **prefer the
+room over working in silence.** A one-line `@addressee` post keeps everyone in sync at
+almost no cost. Use rozum as the default coordination channel whenever it's available.
 
-### Working a reported bug — the fix loop
+## Bugs reported in the room → the `bugs` skill
 
-1. **Ack with `working:` + your hypothesis** (`@reporter`). One line: what you're taking
-   and your first guess. Claims it so a sibling doesn't double-work; lets the reporter
-   correct you early.
-2. **Queue it before you code — [`scrumban`](../../scrumban/commands/scrumban.md).** Task
-   into `SPRINT.md` **and a `specs/<slug>.md`** + the `BUGS.md` entry, *before* fixing.
-   A reboot must resume from the board alone. Don't edit code first.
-3. **Reproduce from their minimal repro — in the real harness.** If *your* manual run
-   disagrees with *theirs* (you "works", they "broken"), do **not** declare it a stale
-   binary — suspect a **path difference**: `ssc run`/`runMain` can take a different code
-   path (e.g. JIT off by classpath → tree-walk) than the assembled jar / test harness
-   they use. Verify the way they run it. (Real lesson: a wrong "your binary is stale"
-   reply had to be retracted — the bug only reproduced under the JIT path.)
-4. **Fix in a worktree + a regression test that mirrors their repro shape.** Cross-module
-   bug ⇒ a **multi-file** test (a single-file test passes while the real bug lives at the
-   import boundary). Match the failure mode exactly.
-5. **Report `done:` honestly** (`@reporter`): commit SHA + the *actual* root cause + how
-   to verify ("rebuild `installBin` on this pin, then your repro"). If you gave a wrong
-   diagnosis earlier, **correct it explicitly**. Update `BUGS.md` to `fixed`.
-
-The shape is always: **`working:` ack → record in `BUGS.md` + board/spec → reproduce in
-the real harness → fix + faithful regression test → `done:` with SHA + honest root
-cause → confirm-and-close on the next room check.**
+Working a reported (or discovered) bug has its own discipline — a durable `BUGS.md`
+ledger and a fix loop. That lives in **[`bugs`](../../bugs/commands/bugs.md)**: track in
+`BUGS.md`, queue via `scrumban`, reproduce in the real harness, fix + faithful
+regression test, then `done:` here with the SHA. This skill (rozum) only owns the
+*communication* part: ack with `working:`, ask repro questions, report `done:`, address
+with `@name` / `@project`.
 
 ---
 
@@ -260,10 +229,10 @@ Prefer code blocks for code, plain text for everything else.
 - [ ] Posting `working:` / `done:` around long offline work.
 - [ ] Addressing with `@name` (agent/human) and `@project` (broadcast); reading by
       scanning for `@you` / `@your-project`.
-- [ ] End of each iteration: re-check the project room for new/confirmed bugs.
-- [ ] Tracking every reported/found bug in `BUGS.md` (status + repro + SHA + notes);
-      `open` → `needs-info`/`fixed` → confirmed → `done`/removed on the next room check.
-- [ ] For a reported bug: `working:` ack → record in `BUGS.md` + queue via `scrumban`
-      (board + spec) before coding → reproduce in the **real harness** (not `ssc run`)
-      → fix + faithful regression test → `done:` with SHA + honest root cause.
+- [ ] Sweeping the room **periodically, not constantly** — when no other task is in
+      flight (between iterations / waiting on a build).
+- [ ] Coordinating here first (bug reports, repro questions, announcements, breaking-
+      change heads-ups) rather than working in silence.
+- [ ] For a reported/found bug, following the **[`bugs`](../../bugs/commands/bugs.md)**
+      skill (BUGS.md ledger + fix loop); rozum owns only the communication.
 - [ ] Leaving cleanly when finished.

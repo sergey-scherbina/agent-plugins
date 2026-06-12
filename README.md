@@ -14,6 +14,7 @@ automatically. The Claude Code marketplace below is an optional native-command l
 | Skill | Description |
 |---|---|
 | [scrumban](./scrumban/) | Durable planning: write-before-do, SPRINT vs BACKLOG, resume-cold entries, queue follow-ups — so a reboot/`/clear`/parallel agent resumes from the board cold |
+| [bugs](./bugs/) | Durable bug handling: a `BUGS.md` ledger (status/repro/SHA/notes) + a fix loop (reproduce in the real harness, faithful regression test), coordinated via rozum |
 | [multi-agent](./multi-agent/) | Coordination protocol for parallel agents: claim/heartbeat/triage/release + autonomous loop |
 | [multi-repo](./multi-repo/) | Workspace management for repos listed in `REPOS.md`: status, sync, update, clone |
 | [spec-dev](./spec-dev/) | Spec-driven development: write spec → implement → verify, keep spec in sync |

@@ -29,10 +29,11 @@ discovers every skill below and loads the relevant one on demand.
 | Skill | When to use | Agent |
 |---|---|---|
 | [`scrumban`](./scrumban/commands/scrumban.md) | **Always.** Durable planning: write the plan into the board (`SPRINT.md`/`BACKLOG.md`) *before* executing, so a reboot/clear/parallel-agent resumes cold. Before starting, deferring, or finishing any task. | any |
+| [`bugs`](./bugs/commands/bugs.md) | Any bug — reported in a room or found by you: track it in `BUGS.md` (status + repro + SHA + notes), work the fix loop, reproduce in the real harness, coordinate via `rozum`. | any |
 | [`spec-dev`](./spec-dev/commands/spec-dev.md) | Every new feature or non-trivial change: write `specs/<slug>.md` first, commit it, implement against it, keep them in sync. | any |
 | [`multi-agent`](./multi-agent/commands/multi-agent.md) | Parallel agents on a shared `origin/main`: claim a queued task, heartbeat, triage a foreign claim, release a stale claim, the worktree + autonomous-loop protocol. | any |
 | [`multi-repo`](./multi-repo/commands/multi-repo.md) | Treating several repos as a virtual monorepo: status / sync / update-submodules / clone / run-in-each / register a repo. | any |
-| [`rozum`](./rozum/commands/rozum.md) | Participating in a `rozum` meeting room (MCP): joining, posting, co-agent etiquette. | any (needs rozum MCP) |
+| [`rozum`](./rozum/commands/rozum.md) | Participating in a `rozum` meeting room (MCP): joining, posting, co-agent etiquette, `@name`/`@project` addressing, when to sweep the room. The default coordination channel. | any (needs rozum MCP) |
 | [`plan-mode-bypass`](./plan-mode-bypass/commands/plan-mode-bypass.md) | Restore `bypassPermissions` after approving a plan. | Claude Code only (a hook) |
 
 ## Wiring a project to all of these
