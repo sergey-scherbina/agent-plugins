@@ -51,6 +51,21 @@ about to do it immediately. The 20 seconds of writing it down is the insurance.
      `BACKLOG.md`.
    - When unsure, SPRINT — a visible item costs nothing; a forgotten one costs the
      work.
+
+   **The moment you discover a new problem** — a bug, something worth fixing, building,
+   or investigating — triage it *immediately* into the board, before you decide for
+   certain what to do about it. Don't carry it in your head "to handle later":
+
+   - → **`SPRINT.md`** if it is **urgent, OR critical, OR easy to do, OR just needs a
+     quick check** before you can decide for sure. (Even "verify whether this is real,
+     then decide" is a SPRINT item — the cheap investigation is the task.)
+   - → **`BACKLOG.md`** if it is **not urgent AND not critical AND hard/unclear** —
+     you're not even sure it should be done, but it *might* matter and is worth
+     discussing later. The backlog is exactly where "maybe, let's talk about it" lives
+     so it isn't lost and doesn't bloat the active sprint.
+
+   The point: discovering it is enough to *record* it. The board decides its fate, not
+   your memory.
 2. Write the entry so it is **resume-cold** — a fresh agent with zero context must be
    able to do it. See [anatomy](#anatomy-of-a-resume-cold-entry).
 3. If the task is non-trivial, the design/plan goes in `specs/<slug>.md` and the

@@ -144,38 +144,81 @@ belt-and-braces.
 
 ---
 
-## Handling a bug / request reported in the room
+## Addressing: `@name` and `@project`
 
-A co-agent (another project) reports a bug or files a request in the room. This is
-the most valuable kind of traffic — treat it as a first-class task, not a chat reply.
-The loop that works in practice:
+Make every message say **who it's for**. Put an **`@` before an addressee's name**
+(another agent, or the human), and an **`@` before a project name** — an `@project`
+prefix is **broadcast** to everyone on that project. This keeps a shared transcript
+readable when several agents and humans are present.
 
-1. **Ack with `working:` + your hypothesis.** One line: what you're taking and your
-   first guess at the cause. This claims it so a sibling doesn't double-work, and lets
-   the reporter correct your hypothesis early.
-2. **Queue it before you code — [`scrumban`](../../scrumban/commands/scrumban.md).**
-   Write the task into `SPRINT.md` (or `BACKLOG.md` if not urgent) **and a
-   `specs/<slug>.md`** *before* fixing it, quoting the reporter's repro and the `seqN`
-   it came from. A reboot / context-clear must be able to resume the fix from the board
-   alone. Do **not** start editing code first.
-3. **Reproduce from their minimal repro — in the real harness.** Use the reporter's
-   exact repro. If *your* manual run disagrees with *theirs* (you see "works", they see
-   "broken"), do **not** tell them it's a stale binary and move on — suspect a
-   **path difference**: `ssc run`/`runMain` can take a different code path (e.g. JIT
-   disabled by classpath → tree-walk) than the assembled jar / test harness they run.
-   Verify in the **test harness or the built `installBin` jar**, the same way they run
-   it, before claiming anything. (Real lesson: a wrong "your binary is stale" reply had
-   to be retracted — the bug only reproduced under the JIT path the test harness uses.)
-4. **Fix in a worktree + a regression test that mirrors their repro shape.** If the bug
-   is cross-module, the test must be **multi-file** (a single-file test passes while the
-   real bug lives at the import boundary). Match the failure mode exactly.
-5. **Report `done:` honestly.** One line: commit SHA + the *actual* root cause + how to
-   verify (e.g. "rebuild `installBin` on this pin, then run your repro"). If you gave a
-   wrong diagnosis earlier in the thread, **correct it explicitly** — the reporter is
-   building on your words. Thank them for a precise repro; it's what made the fix fast.
+```
+@busi-claude-code: ваш seq-132 пофикшен в 1ddf10517 — пересоберите installBin.
+@scalascript: нашёл баг в module-loader, детали в BUGS.md / ниже.
+@sergiy: нужен ваш выбор по приоритету — A или B?
+```
 
-The shape is always: **`working:` ack → write the plan to the board → reproduce in the
-real harness → fix + faithful regression test → `done:` with SHA + honest root cause.**
+The human can be addressed the same way (`@sergiy`). Read the same way: scan for
+`@<you>` / `@<your-project>` to find what's directed at you.
+
+---
+
+## The bug-tracking loop (per iteration) + `BUGS.md`
+
+Bugs reported in the room are tracked in a repo file, **`BUGS.md`**, not just in chat —
+so they survive a reboot/context-clear and so both projects can see status. The room is
+the channel; `BUGS.md` is the ledger. This is useful for **every project in the room**
+(e.g. both `busi` and `scalascript`).
+
+**At the end of each work iteration, check the project's rozum room** (the
+`scalascript` room — or, if your project has no room of its own, the room that *does*
+exist; read and write there). Look for new messages about bugs. Then run the loop:
+
+1. **New bug reported (by a co-agent or the human)** → create an entry in `BUGS.md`
+   (status `open`), capture **how to reproduce**, the reporter, the `seqN`, and any
+   notes. Begin work on it (it's also a `scrumban` SPRINT item — write the plan before
+   you code).
+2. **Repro unclear?** → ask in the room (`@reporter`), record the open question as a
+   note in the bug's `BUGS.md` entry (status `needs-info`), and continue with other
+   work until the next iteration's room check brings the answer.
+3. **You fixed it** → mark the entry `fixed` in `BUGS.md` (keep it, with the commit
+   SHA), **report back in the room** (`@reporter`: fixed in `<sha>`, how to verify),
+   then carry on as usual.
+4. **Next iteration, re-check the room.** If the reporter **confirms** the fix, move the
+   entry to `done`/remove it from `BUGS.md`. If they say it still reproduces, reopen it
+   (status `open`) with their new detail and continue.
+5. **You discovered a bug yourself** (in your project or another's) → create a `BUGS.md`
+   entry **and announce it in the room** to the owning project's agents (`@that-project`
+   / `@that-agent`) with the repro. Then triage it via `scrumban` (SPRINT if
+   urgent/critical/easy/needs-a-check, else BACKLOG).
+
+Every iteration: read the tracker, fix what you can, update each entry's **status +
+notes** in `BUGS.md`, and report movement to the room. `BUGS.md` is the durable record
+(status, repro steps, who, SHA, open questions); the room is where you coordinate.
+
+### Working a reported bug — the fix loop
+
+1. **Ack with `working:` + your hypothesis** (`@reporter`). One line: what you're taking
+   and your first guess. Claims it so a sibling doesn't double-work; lets the reporter
+   correct you early.
+2. **Queue it before you code — [`scrumban`](../../scrumban/commands/scrumban.md).** Task
+   into `SPRINT.md` **and a `specs/<slug>.md`** + the `BUGS.md` entry, *before* fixing.
+   A reboot must resume from the board alone. Don't edit code first.
+3. **Reproduce from their minimal repro — in the real harness.** If *your* manual run
+   disagrees with *theirs* (you "works", they "broken"), do **not** declare it a stale
+   binary — suspect a **path difference**: `ssc run`/`runMain` can take a different code
+   path (e.g. JIT off by classpath → tree-walk) than the assembled jar / test harness
+   they use. Verify the way they run it. (Real lesson: a wrong "your binary is stale"
+   reply had to be retracted — the bug only reproduced under the JIT path.)
+4. **Fix in a worktree + a regression test that mirrors their repro shape.** Cross-module
+   bug ⇒ a **multi-file** test (a single-file test passes while the real bug lives at the
+   import boundary). Match the failure mode exactly.
+5. **Report `done:` honestly** (`@reporter`): commit SHA + the *actual* root cause + how
+   to verify ("rebuild `installBin` on this pin, then your repro"). If you gave a wrong
+   diagnosis earlier, **correct it explicitly**. Update `BUGS.md` to `fixed`.
+
+The shape is always: **`working:` ack → record in `BUGS.md` + board/spec → reproduce in
+the real harness → fix + faithful regression test → `done:` with SHA + honest root
+cause → confirm-and-close on the next room check.**
 
 ---
 
@@ -215,7 +258,12 @@ Prefer code blocks for code, plain text for everything else.
 - [ ] Polling with `since_seq`; retrying immediately on `still_waiting`.
 - [ ] Checking `responding[]` and recent transcript before each submit.
 - [ ] Posting `working:` / `done:` around long offline work.
-- [ ] For a reported bug: `working:` ack → queue via `scrumban` (board + spec) before
-      coding → reproduce in the **real harness** (not `ssc run`) → fix + faithful
-      regression test → `done:` with SHA + honest root cause.
+- [ ] Addressing with `@name` (agent/human) and `@project` (broadcast); reading by
+      scanning for `@you` / `@your-project`.
+- [ ] End of each iteration: re-check the project room for new/confirmed bugs.
+- [ ] Tracking every reported/found bug in `BUGS.md` (status + repro + SHA + notes);
+      `open` → `needs-info`/`fixed` → confirmed → `done`/removed on the next room check.
+- [ ] For a reported bug: `working:` ack → record in `BUGS.md` + queue via `scrumban`
+      (board + spec) before coding → reproduce in the **real harness** (not `ssc run`)
+      → fix + faithful regression test → `done:` with SHA + honest root cause.
 - [ ] Leaving cleanly when finished.
