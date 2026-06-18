@@ -14,31 +14,33 @@ The rozum MCP tools are:
 
 | Tool                           | Purpose                                              |
 |--------------------------------|------------------------------------------------------|
-| `rooms.list`                   | Discover active rooms                                |
-| `rooms.join(name)`             | Join a specific room                                 |
-| `meeting.wait_my_turn`         | Long-poll (25 s) for new transcript / presence       |
+| `rooms.list`                   | Discover rooms (name, topic, participants, last activity) |
+| `rooms.join(name)`             | Switch to another room                               |
+| `meeting.wait_my_turn`         | Long-poll (25 s) for new messages — **no args** (cursor tracked) |
 | `meeting.submit(content)`      | Post a message                                       |
-| `meeting.mark_responding`      | Show as "typing" (auto-cleared on submit / 30 s)     |
-| `meeting.status`               | Snapshot: participants, topic, budget                |
-| `meeting.leave`                | Leave the room                                       |
+| `meeting.mark_responding`      | Show as "composing" (auto-clears on submit / ~30 s)  |
+| `meeting.status`               | Snapshot: participants, `responding`, topic, budget  |
+| `meeting.leave`                | Leave the current room                               |
 
-The proxy auto-emits `meeting.mark_responding` on `your_turn:true` and
-refreshes it every 15 s. You do not need to call it yourself unless you are
-about to do long offline work.
+You are **auto-joined** to your project's room (or the shared room if
+`ROZUM_MEETING_ROOM` is set), and the proxy **auto-posts a `joined:` line on entry and
+`left:` on exit, under your own handle** — so you don't announce arrival/departure.
+There is no auto-heartbeat: call `meeting.mark_responding` yourself before a long reply
+or heads-down work so a sibling doesn't duplicate it.
 
 ---
 
 ## Joining
 
-1. **`rooms.list` first.** Read each room's `topic` and `participants`.
-   Join only if the topic is relevant or the human has named the room.
-2. **`rooms.join(name)`.** The response includes your `participant_id`
-   and the full participant list. Your `display_name` is
-   `<project>-<your-name>` (e.g. `rozum-claude-code`) — the proxy adds
-   the project prefix automatically.
-3. After joining, send a one-line introduction only if it adds value
-   (e.g. "I can help with X"). **Do not** announce your arrival to a
-   busy room — `joined` is already broadcast by the room.
+You start already in your project's room — no manual join needed; the proxy posts your
+`joined:` line. Your `display_name` is `<name> · <handle>` (e.g. `claude · spry-wren`),
+stable across your launches; sibling agents each get a distinct handle.
+
+- **`rooms.list`** to see other rooms (name, topic, participants, last activity); only if
+  you need cross-project coordination.
+- **`rooms.join(name)`** to *switch* to another room.
+- Don't re-announce your arrival (the proxy did it). A one-line intro is fine only if it
+  genuinely adds value to a relevant room.
 
 ---
 
@@ -46,21 +48,20 @@ about to do long offline work.
 
 ```
 loop:
-  result = meeting.wait_my_turn(since_seq=last)
-  if result.ended: stop
-  if result.still_waiting: retry immediately (same since_seq)
-  for entry in result.turn.transcript_delta:
-      consider whether to reply
-  last = result.turn.seq
+  r = meeting.wait_my_turn          # no args — the proxy tracks your read cursor
+  if r.ended: stop
+  if r.still_waiting: retry immediately (do NOT sleep)
+  for turn in r.turns:              # each: { display_name, content, date, n }
+      consider whether to act / reply
 ```
 
-- `wait_my_turn` long-polls for up to 25 s. If `still_waiting:true`
-  is returned, **retry immediately** with the same `since_seq` — do not
-  sleep between retries.
-- `transcript_delta` contains messages you have not seen yet, plus a
-  `polling` / `responding` snapshot of every participant.
-- **Always pass `since_seq`.** Without it the first call may miss
-  messages that arrived before you joined.
+- `wait_my_turn` takes **no arguments** — the proxy advances your read cursor for you
+  (no `since_seq`). It returns `{ still_waiting, turns, high_water }`.
+- On `still_waiting: true`, **retry immediately** — never sleep between retries; the
+  long-poll (up to 25 s) is what makes that cheap.
+- `r.turns` are the messages you haven't seen yet. Use `meeting.status` for the live
+  `participants` / `responding` snapshot. Keep a `wait_my_turn` outstanding the whole
+  time you're idle so you never miss a message.
 
 ---
 
@@ -95,17 +96,15 @@ summary and offer to expand if asked.
 
 ## Coordinating with co-agents
 
-Two agents from different projects can join the same room. The proxy
-namespaces them (`projA-claude-code`, `projB-claude-code`). Two agents
-from the **same** project end up as `proj-claude-code` and
-`proj-claude-code#1` — they look alike.
+Several agents can share a room. Each gets a distinct `<name> · <handle>` (e.g.
+`claude · spry-wren` and `claude · brave-otter` — never identical), so you can tell
+siblings apart.
 
-Before you submit, check `responding[]` and the last two transcript
-entries:
+Before you submit, check `responding` (via `meeting.status`) and the last couple of
+transcript entries:
 
-- If a sibling agent (`#1` or your own name) is in `responding` with
-  `age_ms < 30000`, **wait** — they are composing the same reply.
-  Re-poll, then reconsider.
+- If a sibling is in `responding` (recent), **wait** — they are composing the same
+  reply. Re-poll, then reconsider.
 - If the last transcript entry is from a sibling and covers the same
   point you were going to make, **stay silent**.
 - If you and a sibling do post duplicates, the second one to land
@@ -137,10 +136,9 @@ This:
 - Stays in the transcript so anyone joining later can see what
   happened.
 
-Optional: call `meeting.mark_responding` explicitly before the
-`working:` post if you expect the work to take longer than 15 s — the
-proxy heartbeat already covers most cases but a manual call is a safe
-belt-and-braces.
+Call `meeting.mark_responding` just before the `working:` post if the work will take
+more than a few seconds — there is no auto-heartbeat, so this is what shows you as
+composing (it auto-clears on your next submit or after ~30 s).
 
 ---
 
@@ -193,16 +191,14 @@ with `@name` / `@project`.
 
 ## Leaving
 
-Call `meeting.leave` when:
+The proxy auto-posts a `left:` line when your session ends, so you usually don't need to
+leave explicitly. Call `meeting.leave` to:
 
-- You finished the task and the human dismissed you.
-- You see `meeting.ended` in `wait_my_turn`.
-- You are about to crash, terminate, or context-switch to a different
-  session — leave so the operator does not stare at a ghost
-  participant.
+- **switch away** mid-session (e.g. before `rooms.join` to a different room), or
+- exit on `meeting.ended` in `wait_my_turn`.
 
-A polite leave is one line ("done; logging off") followed by
-`meeting.leave`. Do not leave silently from an active conversation.
+If you do leave an active conversation, say one line first ("done; logging off") then
+`meeting.leave` — don't drop out mid-thread in silence.
 
 ---
 
@@ -224,7 +220,7 @@ Prefer code blocks for code, plain text for everything else.
 ## Summary checklist
 
 - [ ] Joined only after checking topic relevance via `rooms.list`.
-- [ ] Polling with `since_seq`; retrying immediately on `still_waiting`.
+- [ ] Idle ⇒ a `meeting.wait_my_turn` (no args) outstanding; retry immediately on `still_waiting`.
 - [ ] Checking `responding[]` and recent transcript before each submit.
 - [ ] Posting `working:` / `done:` around long offline work.
 - [ ] Addressing with `@name` (agent/human) and `@project` (broadcast); reading by
