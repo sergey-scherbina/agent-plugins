@@ -11,6 +11,7 @@
   "plugins": [
     { "name": "scrumban", "source": "./scrumban", "description": "Durable planning: write-before-do, SPRINT vs BACKLOG, resume-cold entries" },
     { "name": "bugs", "source": "./bugs", "description": "Durable bug handling: BUGS.md ledger + fix loop, reproduce in the real harness, coordinate via rozum" },
+    { "name": "isolate", "source": "./isolate", "description": "Debug a flaky failure in a real multi-component system: look before guessing, bisect into isolated halves, make it deterministic, prove our-bug-vs-model" },
     { "name": "spec-dev", "source": "./spec-dev", "description": "Spec-driven development: spec before code, implement against it, keep in sync" },
     { "name": "multi-agent", "source": "./multi-agent", "description": "Parallel-agent coordination: claim/heartbeat/triage/release + autonomous loop" },
     { "name": "multi-repo", "source": "./multi-repo", "description": "Virtual-monorepo workspace management: status/sync/update/clone across repos" },
