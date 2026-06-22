@@ -118,6 +118,20 @@ example: a broad "grab the patch from any field" change shipped without a
 deterministic A/B and quietly dropped `pass` to 0 across the board; it was
 reverted. The narrow, isolation-proven one-flag fix held.)
 
+**Your isolated repro must match the full system, or it lies.** A second real
+case: a model narrated its tool calls in markdown instead of emitting them
+structured. A strong "output ONLY name + JSON, no prose/markdown" prompt-override
+was proven on an *isolated single-turn probe* — it returned a clean structured
+call. Shipped into the real agent matrix, it **regressed** the previously-passing
+cell: the override half-worked (the model dropped the markdown fence) but kept a
+lead-in prose line, so the call became `prose\nname\n{json}` — bare and un-fenced —
+which the existing fenced parser no longer caught. The isolated probe (one
+controlled system message, single turn) was not the system that shipped (real
+multi-turn agent prompt, a second wire endpoint the override never reached). The
+lesson is not "don't try prompt fixes" — it's that a repro proves nothing the
+full path doesn't share. Re-run the *actual* failing cell, not a clean-room model
+of it.
+
 ---
 
 ### Checklist
