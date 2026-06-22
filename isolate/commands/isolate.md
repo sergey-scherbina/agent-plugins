@@ -95,6 +95,20 @@ Hold the two apart in the writeup, too. A single symptom often hides **two
 independent bugs** — e.g. a correctness bug (wrong final state) and a termination
 bug (won't stop). Fix them separately; don't let one mask the other.
 
+**"It's a weak model" is the most seductive premature conclusion — isolate before
+you say it.** (Real example: a freshly-ported model scored 4/15 on the agentic
+matrix, narrating tool use in markdown prose instead of emitting structured tool
+calls; the easy read was "this model isn't tool-tuned, unfixable." Wrong. Model-only
+probes — the same tools sent straight to the gateway with a *clean* prompt, across
+every endpoint — returned perfectly structured calls. The failure only appeared with
+the **agents' large system prompts**, which instruct "explain in prose + use markdown
+before each call"; the model *faithfully followed that* into markdown narration. A
+control — the gold-standard model on the same agent prompts — stayed structured. So
+it was a prompt-conflict, prompt-triggered and fixable (constrain the decode / strip
+the narration framing), not an inherent model limit. The "look before you guess" rule
+applies hardest to the model itself: never close a cell as "model too weak" until a
+clean-prompt model-only probe has been run.)
+
 ## 5. Prove the fix in isolation before you ship it
 
 The same discipline that found the bug validates the fix. Reproduce the
