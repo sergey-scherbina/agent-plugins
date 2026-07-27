@@ -83,11 +83,15 @@ Worktrees:
 Pending tasks (top 5):
   [ ] <slug> — <description>
 
-Stale claims (heartbeat > 20 min):
+Stale claims (heartbeat > 45 min):
   <slug>  last heartbeat: <timestamp>
 ```
 
-A claim is stale if its `heartbeat` field is older than 20 minutes, or if the field is missing.
+A claim is stale if its `heartbeat` field is older than 45 minutes, or if the field is missing.
+The threshold is ENFORCED by `scripts/coord-status` in the consuming repo — that value is the
+source of truth, and this document restating it is why the two once disagreed (20 here, 45 there,
+which would have had an agent declare a live claim orphaned at minute 21).
+`tests/coord/heartbeat-threshold-single-source.sh` now fails if they drift apart again.
 
 ---
 
@@ -173,9 +177,9 @@ Interpret using this table:
 | Worktree | Dirty files | Heartbeat age | Conclusion |
 |---|---|---|---|
 | missing | — | any | Orphan — safe to release and reclaim |
-| exists | no | > 20 min or missing | Likely dead session |
-| exists | yes | > 20 min | Work in progress, agent gone — ask user |
-| exists | yes or no | **< 20 min** | **Possibly live — do not touch; ask user** |
+| exists | no | > 45 min or missing | Likely dead session |
+| exists | yes | > 45 min | Work in progress, agent gone — ask user |
+| exists | yes or no | **< 45 min** | **Possibly live — do not touch; ask user** |
 
 Report findings in this format and wait for user direction:
 
@@ -262,7 +266,7 @@ next: <first planned step>
 
 **`heartbeat`** — last time the agent pushed a live update to `origin/main`.
 Refresh on every `claim-update` commit and whenever dirty/uncommitted work
-sits for more than ~10 minutes. Older than ~20 minutes → treat as potentially
+sits for more than ~10 minutes. Older than ~45 minutes → treat as potentially
 orphaned.
 
 Old single-line format (`<worktree-name> <timestamp>` only) is still valid;
@@ -567,7 +571,7 @@ $BACKLOG  →  $SPRINT  →  (claimed)  →  $CHANGELOG
 - Claims are valid **only when visible on `origin/main`** — a local file or
   a commit on a feature branch is not a claim.
 - Never assume a claim is yours because it exists — read `agent:` first.
-- Heartbeat > 20 min = potentially orphaned; run `triage` before touching.
+- Heartbeat > 45 min = potentially orphaned; run `triage` before touching.
 - Never `git reset --hard`, `git stash`, or `git restore .` on shared `main` —
   these destroy sibling agents' work.
 - The absolute-path trap is the #1 source of lost work in worktree sessions.
