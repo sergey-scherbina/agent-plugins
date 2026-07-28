@@ -167,6 +167,34 @@ flight.** Don't interrupt focused work to poll; do check between iterations, whe
 board is momentarily clear, or when you're waiting on a build. The room is for
 coordination, not a feed to babysit.
 
+### MANDATORY: sweep when you finish something and have nothing queued
+
+**Whenever you finish a piece of work and have nothing else in flight, read the room
+before you stop or pick up the next item.** Not "if convenient" — every time. Then act
+on what you find: answer what is addressed to you, pick up a bug someone reported,
+confirm a fix someone is waiting on.
+
+*Why this is a rule and not a suggestion.* A room is only a coordination channel if
+someone actually reads it. An agent that posts findings and never sweeps has not
+coordinated — it has written into a file nobody opens, while believing it handed the
+work off. Posting is the cheap half; **reading is the half that makes the post mean
+anything.** The failure is invisible from the poster's side, which is exactly why it
+needs a fixed checkpoint instead of judgement.
+
+The checkpoint, concretely — at the end of every finished item:
+
+1. `meeting.wait_my_turn` (or `meeting.status` for a snapshot) — what arrived while you
+   were heads-down?
+2. Scan for `@you`, `@your-project`, and anything unaddressed that is clearly yours —
+   a bug in your area, a question about code you own, a `done:` awaiting your
+   confirmation.
+3. **Act on it now, or queue it** (`SPRINT.md` / `BACKLOG.md`) so it is not lost. Do
+   not read a request and move on without doing either.
+4. Only then pick your next item.
+
+If the room is empty, that costs one call. If it is not, you just avoided a duplicated
+task, an unanswered question, or a bug sitting unread for hours.
+
 A good moment to sweep: at the end of an iteration, look for new messages — a bug
 report, a question, a confirmation that a fix you shipped works. Handle what's there,
 then go back to your queue.
@@ -227,6 +255,9 @@ Prefer code blocks for code, plain text for everything else.
       scanning for `@you` / `@your-project`.
 - [ ] Sweeping the room **periodically, not constantly** — when no other task is in
       flight (between iterations / waiting on a build).
+- [ ] **MANDATORY: swept the room at the end of every finished item**, before stopping
+      or picking up the next one — and acted on or queued whatever was there. A post
+      nobody reads is not coordination.
 - [ ] Coordinating here first (bug reports, repro questions, announcements, breaking-
       change heads-ups) rather than working in silence.
 - [ ] For a reported/found bug, following the **[`bugs`](../../bugs/commands/bugs.md)**

@@ -92,6 +92,41 @@ Honest scoping is a feature: deferring with a written entry is *better* than sil
 dropping it or silently expanding scope. The board is where "not now" is recorded so
 it isn't "never."
 
+## decide — resolve it yourself, park the alternatives
+
+Most "questions" that surface mid-task are not questions for the human. They are
+choices you are competent to make and the human would answer with "use your
+judgement." **Default to deciding, and record the decision. Reserve asking for the
+cases where a wrong guess is unsafe or unrecoverable, or where the answer is a
+preference only the owner holds** (product intent, priorities, naming they care about,
+anything outward-facing or destructive).
+
+The rule of thumb: *if you can name a defensible default and the cost of being wrong is
+a revert, take the default and say so.* Stopping to ask converts minutes of work into
+hours of latency, and the human is answering with less context than you have right now.
+
+When a fork is real but the alternatives are heavy, do **not** turn it into a blocking
+question and do **not** silently pick the biggest option:
+
+1. **Take the smallest defensible option now** — the one that is independently
+   shippable and easy to reverse.
+2. **Write the rejected alternatives into the board** — `SPRINT.md` if it's the natural
+   next slice, `BACKLOG.md` if it's genuinely not now — each with its one-line
+   trade-off and what would make it the right call.
+3. **State the assumption in the commit / your report**, so the owner can redirect
+   cheaply if they disagree.
+
+That way the fork is preserved as work, not as an open question in someone's inbox. An
+alternative parked in `BACKLOG.md` with its trade-off costs nothing and is there the day
+it becomes right; the same alternative held as "I should ask about this" is lost at the
+next reboot.
+
+**What still deserves a question:** an irreversible or outward-facing action; a decision
+that would invalidate work already shipped; a genuine conflict between two stated
+instructions; or a case where every option is bad and you want the owner to know before
+you spend the time. Ask those *while continuing everything that doesn't depend on the
+answer* — a blocking question that stops all work is the last resort, not the first.
+
 ## pick — from the board
 
 When choosing what to do next, read the board, not your memory of it.
