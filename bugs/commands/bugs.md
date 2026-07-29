@@ -33,13 +33,35 @@ This composes with the other skills:
 
 ## `BUGS.md` — the ledger
 
-One entry per bug, newest first. Track at least: **status, the reporter (and `seqN` if
-from a room), how to reproduce, the root cause once known, the fix commit SHA, and any
-open questions / notes.** Status flow:
+One entry per bug, newest first. The prose carries **the reporter (and `seqN` if from a
+room), how to reproduce, the root cause once known, and any open questions**. The
+*status* does not live in prose — it goes in a machine-readable header, because a query
+must never have to read English:
 
+```markdown
+## <slug> — <one line>
+<!-- status: open        · open|fixed|wontfix|duplicate|unknown
+     lane: <lane>
+     area: <area>
+     gate: <path>        · what would catch a regression; `none` if there is not one yet
+     fixed-in: <sha> --> · required when status: fixed
 ```
-open  →  needs-info  →  fixed  →  (reporter confirms)  →  done
-```
+
+**Closed is ONE word: `fixed`.** This skill used to prescribe
+`open → needs-info → fixed → done`, and that is precisely how one project's ledger ended
+up with three synonyms for closed (measured 2026-07-29 across 614 entries: `FIXED` 332,
+`DONE` 67, `RESOLVED` 3, plus ten one-off freeform values — and **108 entries with no
+status at all**, invisible to every query). "Reporter has not confirmed yet" is
+`confirmed: no`: a different question from whether the defect is still present, so it is
+a different field, not a fourth state.
+
+If the project has no such header convention yet, keep a single consistent status word
+and put it in the same place in every entry. The failure mode to avoid is not the schema
+you pick — it is having five of them.
+
+**Querying:** never grep the prose for status. Hand-rolled queries over prose disagree
+with each other; one such query silently omitted 108 entries while answering a direct
+question about remaining work. Use the project's report tool if it has one.
 
 | Status | Meaning |
 |---|---|
@@ -114,5 +136,10 @@ cause → confirm-and-close on the next room sweep.**
       fix reports.
 - [ ] Reproduced in the **real harness**, not a dev-only runner.
 - [ ] Regression test mirrors the reporter's repro shape (multi-file for cross-module).
-- [ ] Status moved `open → needs-info → fixed → done`; closed only on reporter
-      confirmation; room swept for new/confirmed bugs when no other task is in flight.
+- [ ] Entry carries the machine-readable header (status / lane / area / gate, plus
+      `fixed-in` when fixed); closed is `fixed`, and "awaiting the reporter" is
+      `confirmed: no`, not another status word.
+- [ ] A superseded report is KEPT but demoted to `### Original report (superseded DATE)`
+      and rewritten in the past tense — a preserved present-tense report reads as current
+      truth, and twice in one day a regression was waved through on exactly that.
+- [ ] Room swept for new/confirmed bugs when no other task is in flight.
