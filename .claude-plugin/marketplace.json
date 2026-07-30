@@ -9,13 +9,55 @@
     "version": "1.0.0"
   },
   "plugins": [
-    { "name": "scrumban", "source": "./scrumban", "description": "Durable planning: write-before-do, SPRINT vs BACKLOG, resume-cold entries" },
-    { "name": "bugs", "source": "./bugs", "description": "Durable bug handling: BUGS.md ledger + fix loop, reproduce in the real harness, coordinate via rozum" },
-    { "name": "isolate", "source": "./isolate", "description": "Debug a flaky failure in a real multi-component system: look before guessing, bisect into isolated halves, make it deterministic, prove our-bug-vs-model" },
-    { "name": "spec-dev", "source": "./spec-dev", "description": "Spec-driven development: spec before code, implement against it, keep in sync" },
-    { "name": "multi-agent", "source": "./multi-agent", "description": "Parallel-agent coordination: claim/heartbeat/triage/release + autonomous loop" },
-    { "name": "multi-repo", "source": "./multi-repo", "description": "Virtual-monorepo workspace management: status/sync/update/clone across repos" },
-    { "name": "rozum", "source": "./rozum", "description": "Etiquette for participating in a rozum meeting room (MCP)" },
-    { "name": "plan-mode-bypass", "source": "./plan-mode-bypass", "description": "Restore bypassPermissions after approving a plan (Claude Code hook)" }
+    {
+      "name": "scrumban",
+      "source": "./scrumban",
+      "description": "Durable planning: write-before-do, SPRINT vs BACKLOG, resume-cold entries"
+    },
+    {
+      "name": "bugs",
+      "source": "./bugs",
+      "description": "Durable bug handling: BUGS.md ledger + fix loop, reproduce in the real harness, coordinate via rozum"
+    },
+    {
+      "name": "isolate",
+      "source": "./isolate",
+      "description": "Debug a flaky failure in a real multi-component system: look before guessing, bisect into isolated halves, make it deterministic, prove our-bug-vs-model"
+    },
+    {
+      "name": "spec-dev",
+      "source": "./spec-dev",
+      "description": "Spec-driven development: spec before code, implement against it, keep in sync"
+    },
+    {
+      "name": "policy",
+      "source": "./policy",
+      "description": "Work-management policy for a shared main: claim scopes, boards, where a record goes, what a gate must prove. Generic Part A + how a project instantiates it"
+    },
+    {
+      "name": "performance",
+      "source": "./performance",
+      "description": "Performance work: alternating A/B measurement, a run history with host load, reading a ratio table by shape, tracking perf tasks"
+    },
+    {
+      "name": "multi-agent",
+      "source": "./multi-agent",
+      "description": "Parallel-agent coordination: claim/heartbeat/triage/release + autonomous loop"
+    },
+    {
+      "name": "multi-repo",
+      "source": "./multi-repo",
+      "description": "Virtual-monorepo workspace management: status/sync/update/clone across repos"
+    },
+    {
+      "name": "rozum",
+      "source": "./rozum",
+      "description": "Etiquette for participating in a rozum meeting room (MCP)"
+    },
+    {
+      "name": "plan-mode-bypass",
+      "source": "./plan-mode-bypass",
+      "description": "Restore bypassPermissions after approving a plan (Claude Code hook)"
+    }
   ]
 }

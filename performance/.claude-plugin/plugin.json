@@ -1,0 +1,9 @@
+{
+  "name": "performance",
+  "version": "1.0.0",
+  "description": "Measure so the number means something (alternating A/B \u2014 one run is a hypothesis), keep a history of benchmark runs and read its dynamics, pick the next problem area from a ratio table, track perf tasks",
+  "author": {
+    "name": "Sergiy Shcherbyna",
+    "email": "sergey.scherbina@gmail.com"
+  }
+}

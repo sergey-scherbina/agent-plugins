@@ -1,0 +1,9 @@
+{
+  "name": "policy",
+  "version": "1.0.0",
+  "description": "One source for how work is managed on a shared main \u2014 claim scopes, boards, where a record goes, deciding, the coordination channel, and what a gate must prove. Part A is the generic policy; Part B is how a project instantiates it",
+  "author": {
+    "name": "Sergiy Shcherbyna",
+    "email": "sergey.scherbina@gmail.com"
+  }
+}
