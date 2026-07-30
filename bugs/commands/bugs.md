@@ -31,6 +31,29 @@ This composes with the other skills:
 
 ---
 
+## Where a bug goes: the module that owns the FIX
+
+**One `BUGS.md` per module, in the module** — not one at the repo root — as soon as a project is
+big enough to have modules. Measured on a real project in 2026-07: a single root file reached 630
+entries, which meant every agent edited the same path (so the coordination protocol had to declare
+it "shared, never an overlap", and the overlap guard stopped being able to help) and a module's own
+defects could not be read from inside the module.
+
+Route on the field that says **which implementation misbehaves** — the lane, the backend, the
+component — because that is where the fix goes. Do NOT route on the paths the entry mentions: the
+same measurement showed that ranking mentioned paths sends nearly everything to the test harness,
+since an entry names its GATE far more often than its cause (109 of 630 mentioned a conformance
+case; only a handful were defects in the corpus itself).
+
+A root-level file still earns its place for defects that **no single module owns** — the same
+defect present in more than one implementation, where the root is the nearest common ancestor. Say
+so in that file's own header, or it silently becomes a leftovers bin.
+
+**Do not widen an enum to fit an entry.** Within an hour of one such split, two entries arrived
+with invented values (a second name for a lane that already had one, and `tooling` where the enum
+said `cli`). Fix the entry. Two names for one thing is the same drift a machine-readable header
+exists to end.
+
 ## `BUGS.md` — the ledger
 
 One entry per bug, newest first. The prose carries **the reporter (and `seqN` if from a

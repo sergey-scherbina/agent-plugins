@@ -22,10 +22,35 @@ The "board" is a few markdown files checked into the repo (no app, no server):
 
 | File | Holds | Lifetime |
 |---|---|---|
-| `SPRINT.md` | Do-soon queue + per-task "what + how" + gotchas | until done, then `[x]` with the result |
-| `BACKLOG.md` | Can-wait / someday work, higher-level | until promoted to SPRINT or dropped |
+| `<module>/SPRINT.md` | That module's queue — per-task "what + how" + gotchas | `[~]` while in progress, `[x]` when done |
+| `<module>/BACKLOG.md` | That module's can-wait work, higher-level | until promoted to its SPRINT or dropped |
+| root `SPRINT.md` | **THE BOARD** — one row per task actually in flight | added before work starts, removed when released |
+| root `BACKLOG.md` | Cross-module or not-yet-scoped items only | until scoped to a module |
 | `specs/*.md` | The design/plan detail a task is too big to inline | durable |
 | `CHANGELOG.md` | Completed work, newest first | permanent |
+
+**Per module, not one file per repo — if the project is big enough to have modules.** A single
+flat `SPRINT.md`/`BACKLOG.md`/`BUGS.md` at the root has three failure modes, all of them observed
+on a real project in 2026-07 at 630 bug entries: every agent edits the same path, so the
+coordination protocol has to declare those files "shared, never an overlap" and the overlap guard
+stops helping; a module's own state cannot be read from inside the module; and one flat sprint
+mixes *planned*, *someone is doing this right now* and *done*, so "what is happening" needs the
+whole file plus a cross-check against the claim directory.
+
+**Two levels, two different questions.** A module sprint is a QUEUE with exactly two states —
+`[~]` in progress, `[x]` done. There is deliberately no "planned": not-started work belongs in
+that module's backlog, and a queue with a planned state just becomes a second backlog. The root
+board answers *what is in flight right now*, one row per live claim:
+
+```markdown
+| task | module | claim | state | notes |
+|---|---|---|---|---|
+| SLUG | v2/ | v2-front-arity | in progress | one line on where it stands |
+```
+
+The same task appears in both places on purpose, and both are written in the SAME commit as the
+claim — a board row without a claim is a lie, a claim without a board row is invisible work, and
+writing them together means they cannot drift by more than one commit.
 
 **Action dispatch** — pick the section for your situation:
 
@@ -46,9 +71,9 @@ about to do it immediately. The 20 seconds of writing it down is the insurance.
 
 1. Decide urgency:
    - **Do-soon** (this work session, or it blocks/unblocks something, or someone's
-     waiting) → `SPRINT.md`.
+     waiting) → the MODULE's `SPRINT.md`, plus a row on the root board.
    - **Can-wait** (a nice-to-have, a non-blocking follow-up, a someday cleanup) →
-     `BACKLOG.md`.
+     that module's `BACKLOG.md`.
    - When unsure, SPRINT — a visible item costs nothing; a forgotten one costs the
      work.
 
@@ -56,10 +81,10 @@ about to do it immediately. The 20 seconds of writing it down is the insurance.
    or investigating — triage it *immediately* into the board, before you decide for
    certain what to do about it. Don't carry it in your head "to handle later":
 
-   - → **`SPRINT.md`** if it is **urgent, OR critical, OR easy to do, OR just needs a
+   - → **the module's `SPRINT.md`** if it is **urgent, OR critical, OR easy to do, OR just needs a
      quick check** before you can decide for sure. (Even "verify whether this is real,
      then decide" is a SPRINT item — the cheap investigation is the task.)
-   - → **`BACKLOG.md`** if it is **not urgent AND not critical AND hard/unclear** —
+   - → **that module's `BACKLOG.md`** if it is **not urgent AND not critical AND hard/unclear** —
      you're not even sure it should be done, but it *might* matter and is worth
      discussing later. The backlog is exactly where "maybe, let's talk about it" lives
      so it isn't lost and doesn't bloat the active sprint.
@@ -84,8 +109,8 @@ Mid-task you will surface follow-ups: an edge case you're scoping out, a second 
 you noticed, a "we should also…". **Queue it the instant you decide to defer it** —
 do not carry it in context "to write down later." Later is a reboot away.
 
-- A follow-up to the current work, still soon → new `SPRINT.md` item.
-- Genuinely not now → `BACKLOG.md`.
+- A follow-up to the current work, still soon → new item in the same module's `SPRINT.md`.
+- Genuinely not now → that module's `BACKLOG.md`.
 - Include the repro / pointer / the one-line "why deferred" so it's actionable later.
 
 Honest scoping is a feature: deferring with a written entry is *better* than silently
@@ -131,7 +156,7 @@ answer* — a blocking question that stops all work is the last resort, not the 
 
 When choosing what to do next, read the board, not your memory of it.
 
-1. Work `SPRINT.md` top-to-bottom (it's ordered by intent). An item is available only
+1. Work the module's `SPRINT.md` top-to-bottom (it's ordered by intent). An item is available only
    if it isn't already claimed/in-progress by another agent — honor the `multi-agent`
    claim protocol when parallel agents share `origin/main`.
 2. Re-read the item's "how" + its spec before starting. If it's stale (already done,
