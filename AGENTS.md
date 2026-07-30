@@ -28,6 +28,8 @@ discovers every skill below and loads the relevant one on demand.
 
 | Skill | When to use | Agent |
 |---|---|---|
+| [`policy`](./policy/commands/policy.md) | **Setting up or citing the work-management rules** for a repo where several agents commit to one `main`: claim scopes, boards, where a record goes, what a gate must prove. Part A is the generic policy; Part B is how a project instantiates it. Read it before changing any such rule. | any |
+| [`performance`](./performance/commands/performance.md) | **Any performance work**: how to measure so the number means something (alternating A/B — one run is a hypothesis), how to keep a history of benchmark runs and read its dynamics, how to pick the next problem area from a ratio table, how to track perf tasks. | any |
 | [`scrumban`](./scrumban/commands/scrumban.md) | **Always.** Durable planning: write the plan into the board (`SPRINT.md`/`BACKLOG.md`) *before* executing, so a reboot/clear/parallel-agent resumes cold. Before starting, deferring, or finishing any task. | any |
 | [`bugs`](./bugs/commands/bugs.md) | Any bug — reported in a room or found by you: track it in `BUGS.md` (status + repro + SHA + notes), work the fix loop, reproduce in the real harness, coordinate via `rozum`. | any |
 | [`spec-dev`](./spec-dev/commands/spec-dev.md) | Every new feature or non-trivial change: write `specs/<slug>.md` first, commit it, implement against it, keep them in sync. | any |
