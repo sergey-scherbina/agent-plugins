@@ -87,7 +87,19 @@ Stale claims (heartbeat > 45 min):
   <slug>  last heartbeat: <timestamp>
 ```
 
-A claim is stale if its `heartbeat` field is older than 45 minutes, or if the field is missing.
+A claim is stale only when **BOTH** liveness signals are cold: its `heartbeat` field is older than
+45 minutes (or missing) **AND** nothing has been committed for the claim inside that same window —
+neither its branch tip (local or remote) nor the claim file itself.
+
+**Commit activity outranks the field.** The field is hand-maintained and agents are told to update it
+on a *material status change*, not as running commentary, so a busy agent's field goes stale by
+design. `scripts/coord-status` already applies this and prints
+`live by COMMIT activity (stale heartbeat field, ignored)` — treat that line as "do not touch".
+
+> Measured 2026-07-30 in the scalascript repo: a claim carried a **10.7-hour-old** heartbeat while
+> landing 13 commits in the very hour the old rule called it stale. It was triaged as orphaned twice,
+> and only a manual `git log` prevented an edit landing in a file that agent was actively working in.
+> A rule that declares live agents dead causes exactly the collision this mutex exists to prevent.
 The threshold is ENFORCED by `scripts/coord-status` in the consuming repo — that value is the
 source of truth, and this document restating it is why the two once disagreed (20 here, 45 there,
 which would have had an agent declare a live claim orphaned at minute 21).
@@ -174,12 +186,30 @@ git show origin/main:.work/active/$SLUG.claim | grep -E '^(agent:|heartbeat:)'
 
 Interpret using this table:
 
-| Worktree | Dirty files | Heartbeat age | Conclusion |
-|---|---|---|---|
-| missing | — | any | Orphan — safe to release and reclaim |
-| exists | no | > 45 min or missing | Likely dead session |
-| exists | yes | > 45 min | Work in progress, agent gone — ask user |
-| exists | yes or no | **< 45 min** | **Possibly live — do not touch; ask user** |
+Get the commit age first — it is the signal that cannot be forgotten:
+
+```bash
+SLUG="<slug>"
+BRANCH="$(git show origin/main:.work/active/$SLUG.claim | sed -n 's/^branch: //p')"
+BRANCH="${BRANCH:-feature/$SLUG}"
+# newest of: branch tip (local or remote), and the claim file's last touch
+for ref in "refs/heads/$BRANCH" "refs/remotes/origin/$BRANCH"; do
+  git log -1 --format='%ct %h %s' "$ref" 2>/dev/null
+done
+git log -1 --format='%ct %h %s' origin/main -- ".work/active/$SLUG.claim"
+```
+
+| Worktree | Dirty files | **Last commit** | Heartbeat age | Conclusion |
+|---|---|---|---|---|
+| any | any | **< 45 min** | any | **LIVE — do not touch, do not ask; the field is irrelevant** |
+| missing | — | > 45 min / none | any | Orphan — safe to release and reclaim |
+| exists | no | > 45 min / none | > 45 min or missing | Likely dead session |
+| exists | yes | > 45 min / none | > 45 min | Work in progress, agent gone — ask user |
+| exists | yes or no | > 45 min / none | **< 45 min** | **Possibly live — do not touch; ask user** |
+
+Before releasing anything, also check that nothing is stranded: if the claim owns a **submodule**,
+verify its worktree is clean, has no unpushed commits, and that the superproject's pointer already
+references its tip. Releasing a claim whose submodule work is only on a local branch loses it.
 
 Report findings in this format and wait for user direction:
 
@@ -208,7 +238,14 @@ Do not implement anything until the user responds.
 
 ### heartbeat
 
-Refresh the `heartbeat` timestamp on your active claim. Run this from the **main checkout** whenever uncommitted work has been sitting for more than ~10 minutes.
+Refresh the `heartbeat` timestamp on your active claim. Run this from the **main checkout**.
+
+**When — and when NOT.** Only when you have **nothing to commit** and will not for a while:
+planning, a long build, a long measurement run. If you are committing — to your branch or to the
+claim file — you are already producing the liveness signal triage reads, and a separate heartbeat
+commit adds nothing. Do not heartbeat on a timer: 202 of 253 commits in one 6-hour window once
+carried no code, which is why the threshold was raised from 20 to 45 minutes. Prefer folding the
+timestamp into a `claim-update:` commit you are making anyway.
 
 ```bash
 SLUG="<your-active-slug>"   # identify from git ls-tree origin/main .work/active/
