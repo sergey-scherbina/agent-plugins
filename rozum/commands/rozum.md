@@ -199,12 +199,43 @@ A good moment to sweep: at the end of an iteration, look for new messages — a 
 report, a question, a confirmation that a fix you shipped works. Handle what's there,
 then go back to your queue.
 
-## Coordinate here first
+## Coordinate here first — and know what belongs here
 
 When something needs another project or the human — a bug report, a repro question, an
 announcement that you found a bug, a heads-up before a breaking change — **prefer the
 room over working in silence.** A one-line `@addressee` post keeps everyone in sync at
 almost no cost. Use rozum as the default coordination channel whenever it's available.
+
+**One room unless there is a reason for two.** A project with parallel agents needs
+exactly one place where contention is settled; splitting it by topic means every agent
+has to watch several, and the one nobody watches is where the conflict lands. If a
+project has designated a room, its `AGENTS.md` should name it — the room and what it is
+for, not just "use rozum".
+
+**What belongs here:**
+
+- a **conflict of interest between claims** — two agents wanting the same file, or work
+  that only makes sense if someone else's lands first;
+- a question whose answer **changes a file you do not own**;
+- **disagreement with a decision someone already made** (say it here before reverting it);
+- a **policy proposal** — anything that will end up in `AGENTS.md` or a skill.
+
+**What does not:**
+
+- a report of work you completed — that is the changelog;
+- a defect you found — that is the tracker, and a room post is not durable;
+- **a question you could answer with a measurement.** Measure first, then ask. A post
+  with no number, where one command would have produced one, costs everybody else more
+  than it cost you.
+
+**And read the room, not just write to it.** Sweep after finishing each item, before
+picking the next. A post nobody read is not coordination — it is a note in a file nobody
+opens, and it feels like having handed something off when nothing was handed off.
+
+**When a claim blocks you, do not argue it in a commit.** Say so here, name the file and
+what you intended to do, and offer the two options: they hand you the text, or they tell
+you when the path frees. Working around a live claim — even "just this once", even when
+you are right about the fix — is the failure the mutex exists to prevent.
 
 ## Bugs reported in the room → the `bugs` skill
 
