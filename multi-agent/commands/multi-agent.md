@@ -26,6 +26,30 @@ to the matching section.
 
 ---
 
+## Rule zero — re-read `AGENTS.md`, and read it from `origin/main`
+
+**Before every task, and again after any context rotation, re-read the project's `AGENTS.md`. In the
+autonomous loop, re-read it from `origin/main` at the top of every iteration and apply whatever
+changed.** It is step 1 of [the loop](#the-loop) as well, but it is stated here because it governs
+ordinary sessions too, not just the loop.
+
+Two distinct failures, and the second is the one agents actually hit:
+
+- **Working from memory.** `AGENTS.md` changes — that is the point of having it. A copy in your head
+  from earlier in the session is how a rule gets skipped without anyone deciding to skip it.
+- **Reading your own checkout.** In a multi-agent repo the file on your disk is whatever your last
+  `fetch` brought, and another agent may have changed a rule since — very possibly *because* of
+  something that just went wrong. `git show origin/main:AGENTS.md` is the current rule; `cat
+  AGENTS.md` is a snapshot of when you last synced. The same reasoning already applies to the queue
+  and the claim directory (see §[The loop](#the-loop) step 2, "Never: `cat "$SPRINT"`").
+
+This is not ceremony. A stale copy of *this very protocol* is how a live claim gets taken: the
+staleness threshold in these instructions moved from 20 to 45 minutes to match the enforcing code,
+and an agent following the older text would declare a working sibling's claim abandoned and take
+their task.
+
+---
+
 ## Configuration
 
 Three keys in `AGENTS.md` configure the pipeline files:
