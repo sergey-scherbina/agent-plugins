@@ -590,8 +590,41 @@ $BACKLOG  →  $SPRINT  →  (claimed)  →  $CHANGELOG
 
 ---
 
+## Claim SIZE and LIFETIME — one claim is one task
+
+A claim's scope has two dimensions and the protocol above only bounds one. "Claim the narrowest
+paths" is well understood; **"claim the smallest unit of WORK, and release it when that work
+lands" is the half that gets skipped**, and it is the one that produces conflicts.
+
+**One claim is one TASK.** Not a milestone, not a list of acceptance criteria, not "make module X
+ready". A claim covering several tasks holds its paths for as long as the SLOWEST of them, and
+every hour of that is an hour no sibling can touch the module — usually to work on a different
+corner of it.
+
+Measured on one repository, 2026-08-05/06: a single claim held an entire module for two days
+across six acceptance criteria. It was reaped twice for a stale heartbeat while its author was
+committing continuously, and a sibling who needed the same module waited on a claim whose remaining
+work was in one file of it.
+
+    claim → do the one thing → land it → RELEASE → claim the next
+
+The cost of a second `coord-claim` is seconds. The cost of a two-day claim is everyone else's
+queue. **A claim that stayed open long enough to be reaped is a claim that should have been
+several** — treat a reaping as a sizing signal, not just a heartbeat failure.
+
+Corollary: **work you find but will NOT do goes on a board before you move on.** The follow-up you
+are deferring, the fix that belongs to another module, the thing a live claim blocks — write it
+where the next person will find it, with the measurement that found it and what would settle it.
+An entry a reader cannot act on is a reminder, not a task. Where it goes depends on the project's
+layout; if its queue file has an "in progress"/"done" shape with no third state, unstarted work
+belongs in the backlog, because marking it in-progress would be false.
+
 ## Coordination rules summary
 
+- **One claim is one task; release it when that task lands.** A claim open long enough to be
+  triaged as stale was probably too big (see above).
+- **Work you found but will not do goes on a board before you move on** — not only in a chat
+  message, which no future agent reads.
 - Claims are valid **only when visible on `origin/main`** — a local file or
   a commit on a feature branch is not a claim.
 - Never assume a claim is yours because it exists — read `agent:` first.
