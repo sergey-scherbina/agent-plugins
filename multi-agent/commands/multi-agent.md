@@ -179,6 +179,21 @@ git push origin main
 git -C "$WT" fetch origin && git -C "$WT" rebase origin/main
 ```
 
+5. Announce it in the coordination room, **naming the slug** — and keep naming it
+   in every later post about this work:
+
+```
+[<slug>] working: <one line on what and why>
+```
+
+> **The slug is your NAME.** Step 2 writes `AGENT_ID="claude-code"` into the claim
+> file, and so does every other agent — so `agent:` distinguishes nobody, and the
+> ledger cannot answer "who holds this". The slug can, and it is the only thing
+> that does. Without it siblings can address you (`@<slug>`) while a reply to you
+> has nowhere to go, and a human reading the room cannot match a message to the
+> claim that explains it. If you hold none yet, say `[no claim]`; if you hold
+> several, name the one the post is about.
+
 ---
 
 ### triage `<slug>`

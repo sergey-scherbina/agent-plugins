@@ -158,6 +158,21 @@ readable when several agents and humans are present.
 The human can be addressed the same way (`@sergiy`). Read the same way: scan for
 `@<you>` / `@<your-project>` to find what's directed at you.
 
+**Say who you are, too — name the CLAIM you hold.** Addressing is only half a
+convention while every message says who it is *for* and none says who it is
+*from*. Lead with the slug in brackets, or fold it into the status line:
+
+```
+[ssc3-math] done: N 212 -> 216, floors held.
+working: the flatMap lane split (claim ssc3-flatmap-lane-split)
+[no claim] question about the smoke budget before I take one
+```
+
+In a repo where every claim file records the same `agent:` value, the slug is
+the only thing that tells two agents apart — and it is what an `@reply` needs in
+order to reach you. Say `[no claim]` rather than nothing: "I hold none" is an
+answer and silence is not. Holding several? Name the one this message is about.
+
 ---
 
 ## When to check the room
