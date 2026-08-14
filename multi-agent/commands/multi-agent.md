@@ -179,8 +179,9 @@ git push origin main
 git -C "$WT" fetch origin && git -C "$WT" rebase origin/main
 ```
 
-5. Announce it in the coordination room, **naming the slug** — and keep naming it
-   in every later post about this work:
+5. Say the slug **in the session you are talking to the human in** — and keep
+   saying it in every later report about this work. Then announce it in the
+   coordination room the same way:
 
 ```
 [<slug>] working: <one line on what and why>
@@ -189,10 +190,18 @@ git -C "$WT" fetch origin && git -C "$WT" rebase origin/main
 > **The slug is your NAME.** Step 2 writes `AGENT_ID="claude-code"` into the claim
 > file, and so does every other agent — so `agent:` distinguishes nobody, and the
 > ledger cannot answer "who holds this". The slug can, and it is the only thing
-> that does. Without it siblings can address you (`@<slug>`) while a reply to you
-> has nowhere to go, and a human reading the room cannot match a message to the
-> claim that explains it. If you hold none yet, say `[no claim]`; if you hold
-> several, name the one the post is about.
+> that does.
+>
+> **The direct session first, the room second, and it is the direct one that gets
+> forgotten.** A human running several agents sees several identical
+> `claude-code`s in several sessions; the slug is what tells them which one is
+> reporting and which claim explains the answer in front of them. They are
+> usually not reading the room while they work. In the room the same slug closes
+> the reciprocal gap: agents are addressed as `@<slug>` and nothing otherwise
+> says which slug ANSWERS, so addressing works in one direction only.
+>
+> Hold none? Say `[no claim]` — that is an answer, silence is not. Hold several?
+> Name the one the message is about.
 
 ---
 
