@@ -15,6 +15,7 @@ automatically. The Claude Code marketplace below is an optional native-command l
 |---|---|
 | [scrumban](./scrumban/) | Durable planning: write-before-do, SPRINT vs BACKLOG, resume-cold entries, queue follow-ups — so a reboot/`/clear`/parallel agent resumes from the board cold |
 | [bugs](./bugs/) | Durable bug handling: a `BUGS.md` ledger (status/repro/SHA/notes) + a fix loop (reproduce in the real harness, faithful regression test), coordinated via rozum |
+| [isolate](./isolate/) | Finding the cause in a multi-component stack: look before guessing, bisect into isolated halves, reduce an input by declaration (identifiers pinned, artifact rebuilt well-formed before it is trusted), make it deterministic, settle our-bug-vs-model with a control |
 | [policy](./policy/) | Work-management policy for a shared `main`: claim scopes, boards, where a record goes, what a gate must prove. Part A is the generic policy, adoptable as-is; Part B is the slots a project fills in |
 | [performance](./performance/) | Performance work: alternating A/B measurement (one run is a hypothesis), a run history with host load, reading a ratio table by shape, tracking perf tasks |
 | [multi-agent](./multi-agent/) | Coordination protocol for parallel agents: claim/heartbeat/triage/release + autonomous loop |

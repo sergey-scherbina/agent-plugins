@@ -1,6 +1,6 @@
 ---
-description: "How to debug a flaky failure in a real multi-component system (model × agent × gateway × sandbox × tooling): look before guessing, bisect into isolated halves, make it deterministic, and prove our-bug-vs-model. Use when a benchmark/matrix cell fails intermittently, when a symptom has several plausible causes, or when you're tempted to blame the model."
-argument-hint: "look | bisect | determinize | our-bug-vs-model"
+description: "How to debug a flaky failure in a real multi-component system (model × agent × gateway × sandbox × tooling): look before guessing, bisect into isolated halves, reduce an input safely (by declaration, pinned, rebuilt), make it deterministic, and prove our-bug-vs-model. Use when a benchmark/matrix cell fails intermittently, when a symptom has several plausible causes, when you are about to cut an input down to a minimal reproducer, or when you're tempted to blame the model."
+argument-hint: "look | bisect | reduce | determinize | our-bug-vs-model"
 ---
 
 # Isolate — debug a real system, don't guess at it
@@ -60,7 +60,45 @@ the ones above or below it**:
 Compare a passing run against a failing run of the *same* cell and diff what they
 did. The first divergence is your lead.
 
-## 3. Make it deterministic
+## 3. Reducing an INPUT: by declaration, pinned, and rebuilt
+
+Bisecting components (step 2) has a twin: cutting the *input file* down to a minimal
+reproducer. Same law — remove one variable at a time — but three failure modes of its
+own, each of which has cost a full investigation.
+
+**Reduce by DECLARATION, never by line.** A line-level cut does not respect syntax, so
+it converges on files that are not programs, and a verdict read off a file that does not
+parse is noise. (Real example: reducing for `(global __u0)` in `std/ui/content.ssc`
+converged on a file with an empty lambda body and an unterminated parameter list. Three
+hypotheses were refuted against it before anyone noticed it did not parse.)
+
+**Pin the declaration of any identifier the predicate names.** A predicate like "the
+report says `GAP (global X)`" has a trivial solution the reducer finds immediately:
+**delete the declaration of `X`**. The name is then genuinely unbound, the predicate
+holds, and every later cut is measured against an input broken in a way the original
+never was. Pin `X` — and the types it needs — out of the reducer's reach. (Real example:
+`(global Parser)` in `std/parsing/core.ssc` converged on three declarations with
+`sealed trait Parser[A]` deleted. With that trait and `trait ParserContext` pinned, the
+same reduction stops at twelve declarations, and the twelve are all well-formed.)
+
+**Rebuild the reduced artifact well-formed and confirm it still reproduces — before you
+read a single verdict off it.** It costs one run and it catches both failures above.
+(Real example: those three `Parser` declarations, restored to a well-formed module,
+lower to `F`. The artifact reproduced nothing at all; one run would have retired it
+before it was used as evidence.)
+
+**Name the structural feature the defect depends on — curried clauses, nesting depth, a
+module boundary — and check the reduction still has it.** Reduction removes structure by
+design, and sometimes the structure it removes *is* the cause. (Real example: a vararg
+defect whose real callee was **curried** got reduced to a single clause. On the
+reduction, one candidate repair looked correct and then produced three children on the
+real call, while the repair that actually works looked like a no-op. The reduced call
+was not even legal Scala — and an illegal program has no defined right answer, so "the
+lanes disagree" stopped being evidence at all.)
+
+When the reduction and the real input disagree about anything, believe the input.
+
+## 4. Make it deterministic
 
 Variance hides bugs. A `pass` that flips 0/1 is not "flaky and unknowable" — it
 is a deterministic mechanism plus a coin you haven't found yet. Drive toward a
@@ -75,7 +113,7 @@ case, not the eye-catching rare one. (Real example: a malformed lowercase patch
 header showed up 2× while the *correct* header re-sent 50× was the real driver —
 fixing the rare shape would have moved ~4% of cases.)
 
-## 4. Prove our-bug-vs-model
+## 5. Prove our-bug-vs-model
 
 The central question is almost always: **is this our bug, or a model limitation?**
 Separate them with a control:
@@ -109,7 +147,7 @@ the narration framing), not an inherent model limit. The "look before you guess"
 applies hardest to the model itself: never close a cell as "model too weak" until a
 clean-prompt model-only probe has been run.)
 
-## 5. Prove the fix in isolation before you ship it
+## 6. Prove the fix in isolation before you ship it
 
 The same discipline that found the bug validates the fix. Reproduce the
 deterministic failure, apply the change, show it now passes deterministically —
@@ -139,6 +177,10 @@ of it.
 - [ ] Read the failing transcript to the end — agent log **and** gateway log.
 - [ ] Named the failing mechanism as a specific line, not a hypothesis.
 - [ ] Reproduced it with the fewest components (ideally tool-only, no model).
+- [ ] If an input was reduced: cut by **declaration**, pinned every identifier the
+      predicate names, and kept the structural feature the defect depends on.
+- [ ] Rebuilt the reduced artifact well-formed and confirmed it **still reproduces**
+      before reading any verdict off it.
 - [ ] Made it deterministic; found the coin behind any 0/1 flip.
 - [ ] Counted shapes; targeting the dominant case.
 - [ ] Settled our-bug-vs-model with a control.

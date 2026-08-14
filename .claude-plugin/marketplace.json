@@ -22,7 +22,7 @@
     {
       "name": "isolate",
       "source": "./isolate",
-      "description": "Debug a flaky failure in a real multi-component system: look before guessing, bisect into isolated halves, make it deterministic, prove our-bug-vs-model"
+      "description": "Debug a flaky failure in a real multi-component system: look before guessing, bisect into isolated halves, reduce an input by declaration (pinned and rebuilt), make it deterministic, prove our-bug-vs-model"
     },
     {
       "name": "spec-dev",
