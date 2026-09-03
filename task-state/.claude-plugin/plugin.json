@@ -1,0 +1,9 @@
+{
+  "name": "task-state",
+  "version": "1.0.0",
+  "description": "How to use rozum's state.get / state.update / state.reset MCP tools: a durable per-project JSON fact store, independent of the conversation, that survives /clear and a fresh session.",
+  "author": {
+    "name": "Sergiy Shcherbyna",
+    "email": "sergey.scherbina@gmail.com"
+  }
+}

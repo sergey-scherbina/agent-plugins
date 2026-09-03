@@ -23,6 +23,7 @@ automatically. The Claude Code marketplace below is an optional native-command l
 | [spec-dev](./spec-dev/) | Spec-driven development: write spec → implement → verify, keep spec in sync |
 | [plan-mode-bypass](./plan-mode-bypass/) | Restore `bypassPermissions` after approving a plan in Claude Code plan mode |
 | [rag](./rag/) | How to use rozum's `rag.search` well: when it earns a call over grep, reading results honestly, connecting it to a project, verifying it's used |
+| [task-state](./task-state/) | How to use rozum's `state.get`/`update`/`reset`: a durable per-project JSON fact store, independent of the conversation, that survives `/clear` and a fresh session |
 
 ## Usage
 

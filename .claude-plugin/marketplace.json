@@ -63,6 +63,11 @@
       "name": "rag",
       "source": "./rag",
       "description": "How to use rozum's rag.search well: when it earns a call over grep, reading results honestly, connecting it to a project, verifying it's used"
+    },
+    {
+      "name": "task-state",
+      "source": "./task-state",
+      "description": "How to use rozum's state.get/update/reset: a durable per-project JSON fact store, independent of the conversation, that survives /clear and a fresh session"
     }
   ]
 }

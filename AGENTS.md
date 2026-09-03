@@ -39,6 +39,7 @@ discovers every skill below and loads the relevant one on demand.
 | [`rozum`](./rozum/commands/rozum.md) | Participating in a `rozum` meeting room (MCP): joining, posting, co-agent etiquette, `@name`/`@project` addressing, when to sweep the room. The default coordination channel. | any (needs rozum MCP) |
 | [`plan-mode-bypass`](./plan-mode-bypass/commands/plan-mode-bypass.md) | Restore `bypassPermissions` after approving a plan. | Claude Code only (a hook) |
 | [`rag`](./rag/commands/rag.md) | Deciding whether/how to reach for `rag.search` over grep, connecting it to a project for the first time, or checking it's actually being used. | any (needs rozum's `rag.search`) |
+| [`task-state`](./task-state/commands/task-state.md) | Starting a task, recovering after a `/clear` or fresh session, or deciding what belongs in the durable per-project fact store vs the planning boards vs memory. | any (needs rozum's `state.*`) |
 
 ## Wiring a project to all of these
 
