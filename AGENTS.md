@@ -40,7 +40,7 @@ discovers every skill below and loads the relevant one on demand.
 | [`plan-mode-bypass`](./plan-mode-bypass/commands/plan-mode-bypass.md) | Restore `bypassPermissions` after approving a plan. | Claude Code only (a hook) |
 | [`rag`](./rag/commands/rag.md) | Deciding whether/how to reach for `rag.search` over grep, connecting it to a project for the first time, or checking it's actually being used. | any (needs rozum's `rag.search`) |
 | [`task-state`](./task-state/commands/task-state.md) | Starting a task, recovering after a `/clear` or fresh session, or deciding what belongs in the durable per-project fact store vs the planning boards vs memory. | any (needs rozum's `state.*`) |
-| [`replay`](./replay/commands/replay.md) | A run failed once and you need it reproducible; verifying a fix against a recorded failure; writing a regression test for the agent loop without a model. | any (needs `nadia`/`rozum-agent`) |
+| [`replay`](./replay/commands/replay.md) | A run failed once and you need it reproducible; verifying a fix against a recorded failure; rebasing a recorded run onto a fixed tree; a regression test for the agent loop with no model at all. | any (needs `nadia`/`rozum-agent`) |
 
 ## Wiring a project to all of these
 

@@ -24,7 +24,7 @@ automatically. The Claude Code marketplace below is an optional native-command l
 | [plan-mode-bypass](./plan-mode-bypass/) | Restore `bypassPermissions` after approving a plan in Claude Code plan mode |
 | [rag](./rag/) | How to use rozum's `rag.search` well: when it earns a call over grep, reading results honestly, connecting it to a project, verifying it's used |
 | [task-state](./task-state/) | How to use rozum's `state.get`/`update`/`reset`: a durable per-project JSON fact store, independent of the conversation, that survives `/clear` and a fresh session |
-| [replay](./replay/) | Record an agent run and replay it: strict (no gateway, no model, no tools) for a regression test, or live-tools (plan from the journal, tools for real) to verify a fix |
+| [replay](./replay/) | Record an agent run and replay it: strict (no model, no tools) for a regression test, live-tools to verify a fix, or fork to rebase the run onto today's world |
 
 ## Usage
 

@@ -72,7 +72,7 @@
     {
       "name": "replay",
       "source": "./replay",
-      "description": "Record an agent run and replay it: strict (no gateway, no model, no tools) for a regression test, or live-tools (plan from the journal, tools for real) to verify a fix against a recorded failure"
+      "description": "Record an agent run and replay it three ways: strict (no gateway, no model, no tools), live-tools (plan from the journal, tools for real, stops at the first divergence), or fork (carry on with a live model at the divergence, into a new journal)"
     }
   ]
 }

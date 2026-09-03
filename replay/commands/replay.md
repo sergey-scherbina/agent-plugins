@@ -1,6 +1,6 @@
 ---
-description: "How to turn a one-off agent failure into something you can re-run: record a run's model replies and tool results to a journal, then replay it with no gateway and no model (strict), or replay the PLAN against today's world with tools running for real (live-tools). Use when a run failed once and you need it reproducible, when verifying a fix against a recorded failure, when writing a regression test for the agent loop, or when an AGENTS.md references this file."
-argument-hint: "record | replay | live-tools | when-to-use"
+description: "How to turn a one-off agent failure into something you can re-run: record a run's model replies and tool results to a journal, then replay it with no gateway and no model (strict), replay the PLAN against today's world with tools running for real (live-tools), or FORK at the divergence and carry the run forward with a live model into a new journal. Use when a run failed once and you need it reproducible, when verifying a fix against a recorded failure, when rebasing a run onto a fixed tree, when writing a regression test for the agent loop, or when an AGENTS.md references this file."
+argument-hint: "record | replay | live-tools | fork | when-to-use"
 ---
 
 # replay — turn "it failed once last night" into something you can run again
@@ -15,12 +15,13 @@ cause stops moving while you look at it.
 what the model said, and what a tool answered — so journaling both, in call order, is
 enough to re-run the whole loop later.
 
-## 1. The two modes, and which question each answers
+## 1. The three modes, and which question each answers
 
-| Mode | Model | Tools | Answers |
-|---|---|---|---|
-| **strict replay** | journal | journal | "does the agent LOOP still behave the same, given identical inputs?" |
-| **live-tools replay** | journal | **real** | "does the plan that failed still fail against today's tree?" |
+| Mode | Model | Tools | Needs a gateway | Answers |
+|---|---|---|---|---|
+| **strict replay** | journal | journal | no | "does the agent LOOP still behave the same, given identical inputs?" |
+| **live-tools replay** | journal | **real** | no | "does the plan that failed still fail against today's tree?" |
+| **fork** | journal, then **live** | **real** | yes, from the fork on | "carry the run forward onto today's world, and give me the new run as a journal" |
 
 Strict touches nothing: no gateway, no network, no tools, no writes. It is the mode
 for a regression test — the same run reproduces forever, and it runs in CI with no
@@ -29,6 +30,14 @@ model at all.
 Live-tools is for the fix loop. The model's decisions stay pinned to the recording
 while the tools actually execute, so you can land a fix and ask whether the *same*
 plan now gets a different answer from the world.
+
+Fork is live-tools that does not stop. **Read it as rebase for agent runs**: the
+prefix that still matches costs no model calls at all, and you pay for the model only
+from the point where the world actually moved. What comes out is a complete new
+journal — replayed prefix, a note saying why it stopped being a replay, then the live
+continuation — which replays strictly like any other. That is the mode that turns "I
+fixed the cause of step 12" into a new 30-step baseline without re-paying for steps
+1–11.
 
 ## 2. Why live-tools STOPS instead of continuing
 
@@ -56,6 +65,12 @@ So the mode detects rather than tolerates:
 **The stop is the answer, not a failure to finish.** "Where did reality stop matching
 the recording" is exactly the question the fix loop is asking.
 
+Fork mode is sound for the *same* reason, applied the other way: it does not reuse the
+old journal's later turns either. At the fork it abandons that journal entirely and
+lets a live model see the new result — which is the question worth asking once the
+world has moved. So neither mode ever hands a model reply to a question it was not
+answering; one stops, the other asks again.
+
 ## 3. Using it from the CLI
 
 ```bash
@@ -68,17 +83,30 @@ nadia run "<task>" --workspace <dir> --replay run.jsonl --gateway http://127.0.0
 
 # Live-tools: the plan from the journal, the tools for real.
 nadia run "<task>" --workspace <dir> --replay run.jsonl --replay-live-tools
+
+# Fork: same, but continue live at the divergence and write the new run out.
+nadia run "<task>" --workspace <dir> --replay run.jsonl --replay-fork run2.jsonl
 ```
 
-Refused rather than silently ignored: `--record` together with `--replay`, either of
-them outside `nadia run`, and `--replay-live-tools` without `--replay`.
+`--replay-fork` reports which of the two things happened, and both are useful: it
+either forked (the world moved — the new journal's own note says where and why), or it
+did not (today's tree still answers exactly as the recording did, and the new journal
+is a faithful copy).
 
-**Two things that will bite you if nobody says them:**
+Refused rather than silently ignored: `--record` together with `--replay`, either of
+them outside `nadia run`, `--replay-live-tools` or `--replay-fork` without `--replay`,
+and the two of them together (they answer opposite questions about the same
+divergence, so picking one silently would be wrong).
+
+**Three things that will bite you if nobody says them:**
 
 - **Replay with the same `--workspace`.** The workspace path is in the system prompt,
   the system prompt is in the model-call fingerprint, so a different path is a
   different run and the replay refuses. That refusal is correct; it is just
   surprising the first time.
+- **Offer the same tools.** Tool NAMES are in the model-call fingerprint too, so
+  replaying with a different tool set (or with MCP servers connected that were not
+  connected when recording) is a different run and is refused for the same reason.
 - **The acceptance gate is skipped under `--replay`, and says so.** The gate makes its
   own model calls, which the journal never recorded — running it would reach for a
   gateway in the one mode whose whole promise is that it does not. A replay is not a
