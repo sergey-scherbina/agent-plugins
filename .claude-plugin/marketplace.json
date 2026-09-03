@@ -68,6 +68,11 @@
       "name": "task-state",
       "source": "./task-state",
       "description": "How to use rozum's state.get/update/reset: a durable per-project JSON fact store, independent of the conversation, that survives /clear and a fresh session"
+    },
+    {
+      "name": "replay",
+      "source": "./replay",
+      "description": "Record an agent run and replay it: strict (no gateway, no model, no tools) for a regression test, or live-tools (plan from the journal, tools for real) to verify a fix against a recorded failure"
     }
   ]
 }

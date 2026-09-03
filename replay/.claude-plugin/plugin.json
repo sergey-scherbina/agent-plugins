@@ -1,0 +1,9 @@
+{
+  "name": "replay",
+  "version": "1.0.0",
+  "description": "Record an agent run's model replies and tool results to a journal, then replay it with no gateway and no model (strict), or replay the plan against today's world with tools running for real (live-tools) — turning a one-off failure into a regression test and a fix-verification tool.",
+  "author": {
+    "name": "Sergiy Shcherbyna",
+    "email": "sergey.scherbina@gmail.com"
+  }
+}
