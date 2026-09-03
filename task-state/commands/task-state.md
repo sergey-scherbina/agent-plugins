@@ -79,12 +79,30 @@ batch patches together by hand.
   continuity of ONE task, not meant to be read by a human at all — if a fact
   belongs on a board (so a sibling agent or the operator can see it), put it on
   the board, not here, even if you also cache a copy here for your own recovery.
-- **Not a log.** Nothing currently records that a `state.*` call happened (unlike
-  `rag.search`, which logs every call at `info` by default — see the `rag`
-  skill's own §4). If you need to confirm a call fired, check the transcript;
-  there is no server-side line to tail yet.
+- **Not a log of its own history.** `state.json` only ever shows the CURRENT
+  merged object, not the sequence of patches that produced it — for that,
+  check the call log (§5), which does exist.
 
-## 5. Connecting it
+## 5. Verifying it's actually being used
+
+Same two signals as `rag.search` (see the `rag` skill's own equivalent section)
+— every successful call logs one line to `~/.run/rozum/mcp-proxy.log`
+(`$XDG_RUNTIME_DIR/rozum/mcp-proxy.log` if set), on by default, off with
+`ROZUM_MCP_PROXY_LOG=0`:
+```
+1788417802 pid=40856 state.get keys=[]
+1788417802 pid=40856 state.update patch={"probe":"ok"}
+1788417802 pid=40856 state.reset had_keys=1
+```
+`state.get` logs the KEYS present, not values (it's read-only and the file is
+already inspectable). `state.update` logs the patch itself — small by design,
+and the one thing that explains a later "why does this field look wrong" that
+the merged file alone cannot. `state.reset` logs how many keys existed before
+the clear — the one piece of context a bare `{}` cannot recover on its own.
+There is no standalone-server shape for `state.*` (see §6), so this is the
+only log location, unlike `rag.search`'s two.
+
+## 6. Connecting it
 
 Comes for free wherever `rag.search` does — the meeting-room MCP proxy
 (`rozum launch`, or `rozum mcp install` done once globally) serves `state.*`

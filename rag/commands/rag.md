@@ -86,20 +86,31 @@ it up in under a second, not at the next server restart.
 
 ## 4. Verifying it's actually being used
 
-Two independent signals, check both:
+Two independent signals, check both — and note the two server shapes log to
+DIFFERENT places, an easy thing to check in the wrong file and conclude
+"nothing is calling it":
 
 - **In your own session**, a `rag.search` call is a visible tool-call entry in the
   transcript — scroll back and look, or ask the operator to.
-- **Server-side**, every successful call logs one line at `info` level, target
-  `rag_search`, on by default (no `RUST_LOG` needed):
-  ```
-  INFO rag_search: rag.search query="..." top_k=5 fused=true hits=5 chunks=10742 stale=false
-  ```
-  Find it in whichever log the server writes to: the meeting-room proxy's own log
-  (its launchd/systemd stdout — `~/.rozum-meeting-daemon.log` on the default
-  install) for the meeting-proxy shape, or the standalone server's own stderr for
-  the `rozum rag mcp` shape. No line for a stretch of active work is the honest
-  answer to "is anyone actually calling this" — not a guess from silence.
+- **Server-side**, every successful call logs one line, but where depends on
+  which shape is serving it:
+  - **Meeting-proxy shape** (`rozum-meet`/`rozum mcp-http` — what a normal
+    `rozum` MCP connection actually runs) has NO tracing subscriber at all, so
+    it uses its own lightweight file logger instead: `~/.run/rozum/mcp-proxy.log`
+    (`$XDG_RUNTIME_DIR/rozum/mcp-proxy.log` if that's set), on by default, off
+    with `ROZUM_MCP_PROXY_LOG=0`:
+    ```
+    1788417832 pid=41048 rag.search query="..." top_k=5 fused=true hits=5 chunks=10782 stale=false
+    ```
+  - **Standalone shape** (`rozum rag mcp`) DOES run inside the full `rozum-gateway`
+    binary, which inits a real tracing subscriber — its line goes to that
+    process's own stderr, `info` level, target `rag_search`, on by default:
+    ```
+    INFO rag_search: rag.search query="..." top_k=5 fused=true hits=5 chunks=10742 stale=false
+    ```
+  No line for a stretch of active work is the honest answer to "is anyone
+  actually calling this" — not a guess from silence, but check the RIGHT file
+  for the shape you actually connected to.
 
 ## 5. Troubleshooting a `false` you didn't expect
 
