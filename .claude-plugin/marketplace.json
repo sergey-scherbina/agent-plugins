@@ -58,6 +58,11 @@
       "name": "plan-mode-bypass",
       "source": "./plan-mode-bypass",
       "description": "Restore bypassPermissions after approving a plan (Claude Code hook)"
+    },
+    {
+      "name": "rag",
+      "source": "./rag",
+      "description": "How to use rozum's rag.search well: when it earns a call over grep, reading results honestly, connecting it to a project, verifying it's used"
     }
   ]
 }

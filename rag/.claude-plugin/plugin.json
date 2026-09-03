@@ -1,0 +1,9 @@
+{
+  "name": "rag",
+  "version": "1.0.0",
+  "description": "How to connect to and use rozum's rag.search retrieval tool well: when it earns a call over grep/glob/Read, how to read a result honestly, how to wire it into a project, and how to verify it's actually being used.",
+  "author": {
+    "name": "Sergiy Shcherbyna",
+    "email": "sergey.scherbina@gmail.com"
+  }
+}

@@ -22,6 +22,7 @@ automatically. The Claude Code marketplace below is an optional native-command l
 | [multi-repo](./multi-repo/) | Workspace management for repos listed in `REPOS.md`: status, sync, update, clone |
 | [spec-dev](./spec-dev/) | Spec-driven development: write spec → implement → verify, keep spec in sync |
 | [plan-mode-bypass](./plan-mode-bypass/) | Restore `bypassPermissions` after approving a plan in Claude Code plan mode |
+| [rag](./rag/) | How to use rozum's `rag.search` well: when it earns a call over grep, reading results honestly, connecting it to a project, verifying it's used |
 
 ## Usage
 

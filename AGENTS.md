@@ -38,6 +38,7 @@ discovers every skill below and loads the relevant one on demand.
 | [`multi-repo`](./multi-repo/commands/multi-repo.md) | Treating several repos as a virtual monorepo: status / sync / update-submodules / clone / run-in-each / register a repo. | any |
 | [`rozum`](./rozum/commands/rozum.md) | Participating in a `rozum` meeting room (MCP): joining, posting, co-agent etiquette, `@name`/`@project` addressing, when to sweep the room. The default coordination channel. | any (needs rozum MCP) |
 | [`plan-mode-bypass`](./plan-mode-bypass/commands/plan-mode-bypass.md) | Restore `bypassPermissions` after approving a plan. | Claude Code only (a hook) |
+| [`rag`](./rag/commands/rag.md) | Deciding whether/how to reach for `rag.search` over grep, connecting it to a project for the first time, or checking it's actually being used. | any (needs rozum's `rag.search`) |
 
 ## Wiring a project to all of these
 
