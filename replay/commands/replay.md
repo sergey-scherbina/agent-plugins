@@ -75,7 +75,8 @@ answering; one stops, the other asks again.
 
 ```bash
 # Record a real run. Nothing records by default; this is always explicit.
-nadia run "<task>" --workspace <dir> --record run.jsonl
+# `auto` puts it in .rozum/runs/<id>.jsonl and prints the id; a path still works.
+nadia run "<task>" --workspace <dir> --record auto
 
 # Strict: same run, no gateway, no model, no tools. Prove it by pointing --gateway
 # somewhere unreachable — if it still produces the same answer, nothing called out.
@@ -85,8 +86,15 @@ nadia run "<task>" --workspace <dir> --replay run.jsonl --gateway http://127.0.0
 nadia run "<task>" --workspace <dir> --replay run.jsonl --replay-live-tools
 
 # Fork: same, but continue live at the divergence and write the new run out.
-nadia run "<task>" --workspace <dir> --replay run.jsonl --replay-fork run2.jsonl
+nadia run "<task>" --workspace <dir> --replay <id> --replay-fork auto
+
+# What has been recorded here, and what came from what.
+nadia runs list
+nadia runs rm <id>
 ```
+
+`--replay` takes an **id or a path**: an existing file is used as-is, anything else is
+looked up in `.rozum/runs`. So the id `runs list` prints can be pasted straight back.
 
 `--replay-fork` reports which of the two things happened, and both are useful: it
 either forked (the world moved — the new journal's own note says where and why), or it
@@ -112,7 +120,33 @@ divergence, so picking one silently would be wrong).
   gateway in the one mode whose whole promise is that it does not. A replay is not a
   verified run.
 
-## 4. What a journal proves, and what it does not
+## 4. Where journals live, and how a fork is traceable
+
+Journals belong in `.rozum/runs/<id>.jsonl` — the same per-project directory the RAG
+index and the task state already use. Ids are `<unix-seconds>-<short-hash>`, so `ls` is
+chronological and two runs in the same second do not collide.
+
+Each journal's **first line is a header**: the task, the workspace, the model, when, and
+— for a fork — the parent's id. That is what makes `nadia runs list` cheap (it reads one
+line per file, not the whole transcript) and what gives a fork machine-readable lineage:
+
+```
+1788422548-3da9af    12 entries  create hello.txt  forked from 1788422537-79d9f8 (6 entries)
+1788422537-79d9f8     6 entries  create hello.txt
+```
+
+Two details worth knowing rather than discovering:
+
+- The header's `parent_entries` is **how long the parent was**, not where the fork
+  happened — the header is written before the run starts, when that is still unknown.
+  The precise fork point is in the fork's own note, written when it actually happens.
+- A journal with no header still appears in the listing, with empty fields. Hiding it
+  would make the list lie about what is on disk.
+
+The header is invisible to a replay: it matches no call, so a journal that has one
+replays exactly like one that does not.
+
+## 5. What a journal proves, and what it does not
 
 It proves the agent's **own calls** replay: same messages out, same events back, same
 tool arguments and results, same order. Divergence is loud — every entry carries a
@@ -126,15 +160,16 @@ gives you the old answer and hides the change. That boundary is deliberate (jour
 every byte a tool touched is a much larger feature), and live-tools mode exists
 precisely for the times you need to ask about the world instead.
 
-## 5. Treat the journal as sensitive
+## 6. Treat the journal as sensitive
 
 It holds everything: the system prompt, the user's words, every model reply, every
 tool result. It is exactly as sensitive as the session it recorded. Recording is
-explicit, nothing records by default, and the file is yours to place, keep and delete
+explicit, nothing records by default, and the file is yours to keep or delete
+(`nadia runs rm <id>`)
 — the same rules `meeting::repro` already states for incident bundles. Do not commit
 one into a repo without reading it first.
 
-## 6. Where this fits the other skills
+## 7. Where this fits the other skills
 
 - [`isolate`](../../isolate/commands/isolate.md) — its "make it deterministic" step is
   this. Record the flaky run, then bisect against a journal instead of against a
