@@ -1,5 +1,5 @@
 ---
-description: "How to turn a one-off agent failure into something you can re-run: record a run's model replies and tool results to a journal, then replay it with no gateway and no model (strict), replay the PLAN against today's world with tools running for real (live-tools), or FORK at the divergence and carry the run forward with a live model into a new journal. Use when a run failed once and you need it reproducible, when verifying a fix against a recorded failure, when rebasing a run onto a fixed tree, when writing a regression test for the agent loop, or when an AGENTS.md references this file."
+description: "How to turn a one-off agent failure into something you can re-run: record a run's model replies and tool results to a journal, then replay it with no gateway and no model (strict), replay the PLAN against today's world with tools running for real (live-tools), or FORK at the divergence and carry the run forward with a live model into a new journal. Also covers recording a client that owns its own loop (Claude Code) at the GATEWAY, and why MCP cannot do that. Use when a run failed once and you need it reproducible, when verifying a fix against a recorded failure, when rebasing a run onto a fixed tree, when writing a regression test for the agent loop, or when an AGENTS.md references this file."
 argument-hint: "record | replay | live-tools | fork | when-to-use"
 ---
 
@@ -120,7 +120,41 @@ divergence, so picking one silently would be wrong).
   gateway in the one mode whose whole promise is that it does not. A replay is not a
   verified run.
 
-## 4. Where journals live, and how a fork is traceable
+## 4. Recording a client that owns its own loop (Claude Code)
+
+Everything above assumes the agent loop is ours. When it is not — Claude Code runs its
+own loop and dispatches its own `Bash`/`Read`/`Edit` — none of those decorators have
+anywhere to sit. **MCP does not help here**: an MCP server sees calls to its own tools
+and never a single model reply, so it can supply neither half of a journal.
+
+The gateway can, but only for a client it actually serves:
+
+```bash
+rozum gateway record start          # journal every model call, prints the run id
+rozum gateway record status
+rozum gateway record replay <id>    # answer from the journal instead of the model
+rozum gateway record stop
+```
+
+It is live: a session already talking to the gateway starts being recorded without a
+restart under it. `ROZUM_GATEWAY_RECORD=auto` covers the launch path, where the gateway
+is spawned for one session and nobody can call the endpoint first. Journals land on the
+same `.rozum/runs` shelf, so `nadia runs list` shows them next to agent runs.
+
+**Three limits worth knowing before you rely on it:**
+
+- **Only for a rozum-served model.** On upstream Anthropic there is no gateway in the
+  path at all, so a Claude Code session on Anthropic's models cannot be recorded by
+  rozum — not a gap in this feature, simply nothing of rozum's is in that path.
+- **Always the live-tools shape.** The client runs its own tools; the gateway sees their
+  results only as text in the next request. So the first tool result that differs changes
+  that request and diverges, loudly. Useful for "where did today's world stop matching",
+  useless as a regression test of the client's loop.
+- **Replay still holds a model lease.** The switchboard is entered before the
+  interception, so a replaying gateway does not generate but is not a way to run with no
+  model resident.
+
+## 5. Where journals live, and how a fork is traceable
 
 Journals belong in `.rozum/runs/<id>.jsonl` — the same per-project directory the RAG
 index and the task state already use. Ids are `<unix-seconds>-<short-hash>`, so `ls` is
@@ -146,7 +180,7 @@ Two details worth knowing rather than discovering:
 The header is invisible to a replay: it matches no call, so a journal that has one
 replays exactly like one that does not.
 
-## 5. What a journal proves, and what it does not
+## 6. What a journal proves, and what it does not
 
 It proves the agent's **own calls** replay: same messages out, same events back, same
 tool arguments and results, same order. Divergence is loud — every entry carries a
@@ -160,7 +194,7 @@ gives you the old answer and hides the change. That boundary is deliberate (jour
 every byte a tool touched is a much larger feature), and live-tools mode exists
 precisely for the times you need to ask about the world instead.
 
-## 6. Treat the journal as sensitive
+## 7. Treat the journal as sensitive
 
 It holds everything: the system prompt, the user's words, every model reply, every
 tool result. It is exactly as sensitive as the session it recorded. Recording is
@@ -169,7 +203,7 @@ explicit, nothing records by default, and the file is yours to keep or delete
 — the same rules `meeting::repro` already states for incident bundles. Do not commit
 one into a repo without reading it first.
 
-## 7. Where this fits the other skills
+## 8. Where this fits the other skills
 
 - [`isolate`](../../isolate/commands/isolate.md) — its "make it deterministic" step is
   this. Record the flaky run, then bisect against a journal instead of against a
