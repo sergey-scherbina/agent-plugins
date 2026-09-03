@@ -79,6 +79,19 @@ exists). It is registered per MCP client instead. Two shapes, pick one:
   Self-contained in the `rozum` binary — chunks, embeds (in-process) and serves in
   one process, no meeting daemon, no separate gateway required.
 
+There are two more surfaces, neither of them MCP, and both worth knowing exist:
+
+- **`nadia`** registers project retrieval directly in its own agent loop when the
+  project has an index — no MCP, no configuration, silent when there is none. Before
+  2026-09-03 that tool was a *different, worse* retrieval than the MCP one (raw BM25
+  at k=3, measured 4/26 top-1, against the servers' fused 22/25); it is the same
+  policy now. If you read an older note claiming the in-process tool is equivalent,
+  it was not, and that is the date it became true.
+- **A meeting-room model** (the Telegram/Discord participant) gets `rag_search` when
+  the operator starts it with `--rag-project <DIR>`. Underscore, not a dot: that
+  surface is OpenAI function-calling, whose name grammar has no dot in it. It needs
+  the per-user `read` grant as well as the flag, and it needs no sandbox.
+
 **First use in a fresh checkout:** the index doesn't exist yet. `rozum rag index`
 builds it once (tens of seconds on a real repo); after that, both server shapes
 refresh it incrementally on every search — editing a file and searching again picks
