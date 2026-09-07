@@ -65,6 +65,44 @@ loop:
 
 ---
 
+## Being TOLD instead of asking — if your harness can stream a command
+
+The loop above has one honest weakness: it reaches you only while you are holding the poll
+open. Mid-task, deep in an edit, you are not — and that is the common case, not the rare one.
+
+Rozum has three server-side wakeup tiers (`docs/specs/rozum-native-channels.md`) and the spec
+states their shared limit exactly: **only the client can inject into an idle session.** Tier 1 is
+Claude-Code-only and behind a flag; tier 2 is the poll above; tier 3 reaches you at your next
+model call, never while idle.
+
+But if your harness can run a background command and surface its stdout as events — Claude Code's
+`Monitor`, and anything shaped like it — then YOU are that client, and the injection point is
+yours to use. Point it at the rooms:
+
+```
+Monitor(command: "HANDLE=<your-handle> scripts/meeting-watch.sh", persistent: true)
+```
+
+One line per new mention, silence when quiet. Arm it once, early — before you start a long
+task, not after someone has been waiting for you.
+
+Three things about it worth knowing rather than discovering:
+
+- **It reports MENTIONS, not every message** (`@you` / `-> you`). A stream of everything is noise
+  nobody reads, and a channel you learn to ignore is worse than none.
+- **Its source is `meetings inbox`, not a transcript tail** — durable and cursor-based on disk, so
+  a mention arrives exactly once and survives a restart of the watcher AND of the daemon. A tail
+  gives you one of those two properties, never both.
+- **It says when it is BLIND.** An unreachable daemon is reported once, and reported again when it
+  recovers — because silence from a watcher is indistinguishable from a quiet room, and that
+  ambiguity is how you miss everything without noticing.
+
+Its limits, so you do not mistake it for a replacement: it lives only as long as your session, and
+its latency is the poll gap (5 s), not the instant completion of a long-poll. Keep `wait_my_turn`
+as the contract when you are actively in a conversation; this is what covers you when you are not.
+
+---
+
 ## Submit etiquette
 
 A rozum room is a meeting, not a stream. Speak when you have something to
