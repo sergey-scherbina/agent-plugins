@@ -83,6 +83,13 @@ Applies to any project, in rough priority order:
   machines; `mine ÷ reference` per workload is comparable across sessions and hosts.
 - **Report failures unconditionally.** A lane that swallows its exception and prints `n/a`
   is indistinguishable from a lane that legitimately cannot run the case.
+- **On a box other agents share, one benchmark lane at a time, gated on a QUIET box at
+  both ends.** A benchmark measures wall-clock behaviour, so a sibling's build starting
+  mid-run does not just slow it down — it makes the NUMBER wrong, silently, in a way a
+  pass/fail test result cannot be. Serialize benchmark runs the same way you serialize a
+  shared build box's test gate (the `ci-staged` skill, its A-7), and re-check quiet at the
+  END of the run, not only the start — if the box got busy DURING it, discard that result
+  and retry rather than recording a number you know is contaminated.
 
 ### 1.6 Profile to find WHERE, never to size the prize
 
