@@ -19,7 +19,7 @@ automatically. The Claude Code marketplace below is an optional native-command l
 | [policy](./policy/) | Work-management policy for a shared `main`: claim scopes, boards, where a record goes, what a gate must prove. Part A is the generic policy, adoptable as-is; Part B is the slots a project fills in |
 | [performance](./performance/) | Performance work: alternating A/B measurement (one run is a hypothesis), a run history with host load, reading a ratio table by shape, tracking perf tasks |
 | [multi-agent](./multi-agent/) | Coordination protocol for parallel agents: claim/heartbeat/triage/release + autonomous loop |
-| [ci-staged](./ci-staged/) | CI shape for a shared build box: pre-merge gate scoped to your changed modules then their dependents, one serial post-merge runner that gates the whole build once and is the only pusher, bisect+revert on red |
+| [ci-staged](./ci-staged/) | Resource economy on a shared build box: run only the specific test/module/benchmark your change needs, reserve the full sweep for one serial, locked post-merge runner that gates the whole build once and is the only pusher, bisect+revert on red |
 | [multi-repo](./multi-repo/) | Workspace management for repos listed in `REPOS.md`: status, sync, update, clone |
 | [spec-dev](./spec-dev/) | Spec-driven development: write spec → implement → verify, keep spec in sync |
 | [plan-mode-bypass](./plan-mode-bypass/) | Restore `bypassPermissions` after approving a plan in Claude Code plan mode |

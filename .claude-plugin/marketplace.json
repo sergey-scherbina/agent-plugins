@@ -47,7 +47,7 @@
     {
       "name": "ci-staged",
       "source": "./ci-staged",
-      "description": "CI shape for a shared build box: pre-merge gate scoped to your changed modules then their dependents, one serial post-merge runner that gates the whole build once and is the only pusher, bisect+revert on red"
+      "description": "Resource economy on a shared build box: run only the specific test/module/benchmark your change needs, reserve the full sweep for one serial, locked post-merge runner that gates the whole build once and is the only pusher, bisect+revert on red"
     },
     {
       "name": "multi-repo",

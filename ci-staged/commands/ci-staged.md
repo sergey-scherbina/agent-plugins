@@ -1,5 +1,5 @@
 ---
-description: "CI shape for a repo where several agents commit to one main/master and share ONE build box: a pre-merge gate scoped to a lane's own changed modules (then their dependents, in that order — never the whole family), and a single serial post-merge runner that gates the WHOLE build once per batch of landings and is the only process that pushes, bisecting and reverting the culprit on red. Use when N agents landing at once are collapsing the shared box (each running a full/closure-sized gate, each re-gating for every sibling's unrelated change), when wiring a lane's pre-merge gate or a post-merge runner, or when an AGENTS.md points here for why the gate is shaped this way."
+description: "CI and resource-economy shape for a repo where several agents commit to one main/master and share ONE build box: run only the specific test/module/benchmark that proves the change in front of you — never the whole family or a full sweep 'just in case' — and reserve 'run everything' for a single serial, LOCKED, once-per-batch post-merge step that is also the only process that pushes, bisecting and reverting the culprit on red. Use when N agents landing (or benchmarking) at once are collapsing the shared box, when wiring a lane's pre-merge gate or a post-merge runner, when a JMH/benchmark sweep from a branch is corrupting or being corrupted by a sibling's run, or when an AGENTS.md points here for why the gate is shaped this way."
 argument-hint: "init | check | cite <rule>"
 ---
 
@@ -122,6 +122,27 @@ for."
   your hardware. This skill only says the runner is serial and locked; the retry/backoff
   policy around a shared box's own load is a separate, hardware-specific concern (see your
   project's own gate-retry tooling, if any).
+
+### A-7 · The same discipline applies to anything else that loads the shared box
+
+Everything in A-1 through A-4 is really one rule wearing a test-gate's clothes: **the box is
+a finite, SHARED resource, and every agent on it draws from the same pool of CPU and RAM.**
+That rule does not stop at the test suite. A benchmark sweep, a full rebuild "while I'm at
+it," a speculative "run everything, just to be sure" — each is the identical failure mode
+(N agents each starting a heavy, mostly-redundant operation on one box) wearing a different
+name, and each gets the identical fix: default to running only the SPECIFIC thing that
+proves the change in front of you, not the family, and reserve "run everything" for the one
+serialized, locked, once-per-batch step A-3 already describes.
+
+A microbenchmark harness (JMH or equivalent) is the sharpest version of this, because it is
+also the most easily corrupted by it: a benchmark measures wall-clock behaviour, so a
+sibling's gate starting mid-run does not just slow the benchmark down, it makes the NUMBER
+wrong, silently, in a way a pass/fail test result cannot be. Measured in one real repo: three
+whole-class benchmark rounds (eight cases each) came back ±50–110% apart, every time because
+a sibling's gate started partway through; the fix was the SAME shape as A-1's ordering — run
+ONE case at a time, gated on the box's INSTANTANEOUS CPU load right before starting (a
+lagging average never bottoms out between back-to-back gates), and re-run any case the box
+got busy during, rather than trusting a number a mid-run interruption already invalidated.
 
 ---
 
