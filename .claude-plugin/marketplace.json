@@ -45,6 +45,11 @@
       "description": "Parallel-agent coordination: claim/heartbeat/triage/release + autonomous loop"
     },
     {
+      "name": "ci-staged",
+      "source": "./ci-staged",
+      "description": "CI shape for a shared build box: pre-merge gate scoped to your changed modules then their dependents, one serial post-merge runner that gates the whole build once and is the only pusher, bisect+revert on red"
+    },
+    {
       "name": "multi-repo",
       "source": "./multi-repo",
       "description": "Virtual-monorepo workspace management: status/sync/update/clone across repos"

@@ -1,0 +1,9 @@
+{
+  "name": "ci-staged",
+  "version": "1.0.0",
+  "description": "CI shape for a shared build box: a pre-merge gate scoped to a lane's own changed modules then their dependents (in that order), and one serial post-merge runner that gates the whole build once per batch and is the only pusher, bisecting and reverting the culprit on red. Part A is the generic shape; Part B is how a project instantiates it",
+  "author": {
+    "name": "Sergiy Shcherbyna",
+    "email": "sergey.scherbina@gmail.com"
+  }
+}
